@@ -5,6 +5,7 @@ import UserTypeSelector from './UserTypeSelector';
 import Input from '../ui/Input';
 import PasswordInput from '../ui/PasswordInput';
 import Button from '../ui/Button';
+import { axiosInstance } from '../../apiConfig/axios';
 import '../../styles/authStyles.css';
 
 const Login = () => {
@@ -14,6 +15,9 @@ const Login = () => {
     password: '',
     rememberMe: false
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [message, setMessage] = useState('');
   
   const handleTypeChange = (type) => {
     setSelectedType(type);
@@ -26,11 +30,71 @@ const Login = () => {
       [name]: type === 'checkbox' ? checked : value
     });
   };
+
+  // Helper function to get cookie by name
+  const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+  };
   
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Login submitted:', formData);
-    // API call to login would go here
+    setLoading(true);
+    setError(null);
+    setMessage('');
+    
+    try {
+      // Step 1: Get CSRF token first
+      console.log('Fetching CSRF token...');
+      await axiosInstance.get('/sanctum/csrf-cookie');
+      console.log('CSRF token fetched!');
+      
+      // Step 2: Attempt login with a small delay to ensure cookie is set
+      setMessage('CSRF token fetched, attempting login...');
+      
+      setTimeout(async () => {
+        try {
+          console.log('Attempting login...');
+          
+          // Get the CSRF token from cookies
+          const token = getCookie('XSRF-TOKEN');
+          console.log('Found CSRF token in cookie:', token ? 'Yes' : 'No');
+          
+          // Set the X-XSRF-TOKEN header explicitly if we have a token
+          const headers = {};
+          if (token) {
+            headers['X-XSRF-TOKEN'] = decodeURIComponent(token);
+          }
+          
+          // Make the login request with explicit headers
+          const response = await axiosInstance.post('/login', 
+            { 
+              email: formData.email, 
+              password: formData.password,
+              user_type: selectedType 
+            },
+            { headers }
+          );
+          
+          console.log('Login successful:', response.data);
+          setMessage('Login successful!');
+          // Handle successful login (e.g., redirect, set auth state, etc.)
+        } catch (err) {
+          console.error('Login error:', err);
+          setError(err.response?.data?.message || 'Login failed');
+          setMessage(`Login failed: ${err.message}`);
+        } finally {
+          setLoading(false);
+        }
+      }, 500);
+    } catch (err) {
+      console.error('CSRF token error:', err);
+      setError('Failed to set CSRF token');
+      setMessage(`CSRF error: ${err.message}`);
+      setLoading(false);
+    }
   };
   
   return (
@@ -51,6 +115,9 @@ const Login = () => {
         <div className="auth-form-container">
           <h2>Welcome Back</h2>
           <p className="subtitle">Sign in to access your club dashboard</p>
+          
+          {error && <div className="error-message">{error}</div>}
+          {message && <div className="status-message">{message}</div>}
           
           <UserTypeSelector 
             selectedType={selectedType} 
@@ -95,7 +162,9 @@ const Login = () => {
               <Link to="/reset-password" className="link">Forgot your password?</Link>
             </div>
             
-            <Button type="submit" fullWidth>Sign In</Button>
+            <Button type="submit" fullWidth disabled={loading}>
+              {loading ? 'Signing In...' : 'Sign In'}
+            </Button>
             
             <p className="auth-footer">
               Don't have an account? <Link to="/register" className="link">Register now</Link>
