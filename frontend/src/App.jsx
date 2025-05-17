@@ -1,4 +1,3 @@
-// src/App.jsx
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Register from './components/auth/Register';
@@ -13,7 +12,7 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="*" element={<Login />} /> {/* fallback vers Login */}
+      <Route path="*" element={<Login />} />
     </Routes>
   );
 }

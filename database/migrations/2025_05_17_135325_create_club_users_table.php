@@ -11,15 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('clubs', function (Blueprint $table) {
+        Schema::create('club_user', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->text('description');
-            $table->text('rules')->nullable();
-            $table->string('logo')->nullable();
-            $table->string('cover_image')->nullable();
+            $table->foreignId('club_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->enum('role', ['member', 'admin', 'president', 'vice_president', 'secretary', 'treasurer'])->default('member');
+            $table->date('joined_at');
             $table->boolean('is_active')->default(true);
-            $table->date('foundation_date')->nullable();
             $table->timestamps();
         });
     }
@@ -29,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('clubs');
+        Schema::dropIfExists('club_user');
     }
 };

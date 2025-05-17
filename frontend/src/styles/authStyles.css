@@ -17,8 +17,7 @@
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-family: 'Inter', sans-serif;
   line-height: 1.5;
   color: var(--text-dark);
   background-color: var(--background-color);
@@ -29,13 +28,14 @@ body {
 .auth-container {
   display: flex;
   min-height: 100vh;
-  width: 100%;
-  max-width: 100%;
+  width: 100vw;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 .auth-sidebar {
-  width: 50%;
-  flex: 0 0 50%; /* Exactement 50% de l'écran */
+  width: 50vw;
+  max-width: 50vw;
   background-color: var(--primary-color);
   color: white;
   padding: 3rem;
@@ -44,7 +44,7 @@ body {
   justify-content: center;
   align-items: center;
   text-align: center;
-  position: relative;
+  box-sizing: border-box;
 
   background-image:
     radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.05) 100px, transparent 100px),
@@ -53,48 +53,16 @@ body {
   background-repeat: no-repeat;
 }
 
-.logo-container {
-  margin-bottom: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.icon-circle {
-  width: 64px;
-  height: 64px;
-  background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.auth-sidebar h1 {
-  font-size: 2.25rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  text-align: center;
-  width: 100%;
-}
-
-.auth-sidebar p {
-  font-size: 1rem;
-  opacity: 0.9;
-  max-width: 100%;
-  text-align: center;
-  margin: 0 auto;
-}
-
 .auth-content {
-  width: 50%;
-  flex: 0 0 50%; /* Exactement 50% de l'écran */
+  width: 50vw;
+  max-width: 50vw;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 2rem;
   overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .auth-form-container {
@@ -329,7 +297,6 @@ select {
   color: var(--text-light);
 }
 
-/* Sidebar text styling */
 .emsi-title {
   text-align: center;
   width: 100%;
@@ -393,23 +360,17 @@ select {
   margin-top: 1.5rem;
 }
 
-/* Responsive styles */
+/* Responsive */
 @media (max-width: 1024px) {
   .auth-container {
     flex-direction: column;
   }
 
-  .auth-sidebar {
-    width: 100%;
-    flex: 0 0 100%; /* Prend toute la largeur en mode responsive */
-    min-height: 300px; /* Hauteur minimale pour la partie verte */
-    padding: 2rem;
-  }
-
+  .auth-sidebar,
   .auth-content {
     width: 100%;
-    flex: 0 0 100%; /* Prend toute la largeur en mode responsive */
-    padding: 2rem;
+    max-width: 100%;
+    flex: 0 0 100%;
   }
 }
 
