@@ -2,66 +2,68 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
+use App\Enums\UserType;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class User extends Authenticatable
+class User extends Model
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    protected $table = 'users';
 
-    protected $table = 'users'; // Table associée
-
-    /**
-     * Les attributs assignables en masse.
-     */
     protected $fillable = [
-        'name',
+        'first_name',
+        'last_name',
         'email',
         'password',
-        'role',
-        'date_creation',
+        'user_type',
+        'profile_image',
+        'student_id',
+        'major',
+        'year_of_study',
+        'phone_number',
+        'bio',
+        'remember_token',
     ];
 
-    /**
-     * Les attributs cachés pour les tableaux.
-     */
+    protected $casts = [
+        'user_type' => UserType::class,
+        'email_verified_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Les attributs castés.
-     */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-        'date_creation' => 'datetime',
-    ];
-
-    /**
-     * 🔗 Relations :
-     */
-
-    public function sessions()
+    public function applications(): HasMany
     {
-        return $this->hasMany(Session::class, 'user_id');
+        return $this->hasMany(Application::class);
     }
 
-    public function notifications()
+    public function clubUsers(): HasMany
     {
-        return $this->hasMany(Notification::class, 'utilisateur_id');
+        return $this->hasMany(ClubUser::class);
     }
 
-    public function candidatures()
+    public function eventUsers(): HasMany
     {
-        return $this->hasMany(Candidature::class, 'utilisateur_id');
+        return $this->hasMany(EventUser::class);
     }
 
-    public function inscriptions()
+    public function feedback(): HasMany
     {
-        return $this->hasMany(InscriptionEvenement::class, 'utilisateur_id');
+        return $this->hasMany(Feedback::class);
+    }
+
+    public function interviews(): HasMany
+    {
+        return $this->hasMany(Interview::class, 'interviewer_id');
+    }
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
     }
 }

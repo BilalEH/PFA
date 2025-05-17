@@ -2,43 +2,47 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Club extends Model
 {
-    use HasFactory;
+    protected $table = 'clubs';
 
-    /**
-     * Nom de la table (correspond exactement à la migration)
-     */
-    protected $table = 'Club';
-
-    /**
-     * Désactive les timestamps automatiques
-     */
-    public $timestamps = false;
-
-    /**
-     * Attributs modifiables
-     */
     protected $fillable = [
-        'nom',
+        'name',
         'description',
-        'date_creation'
+        'rules',
+        'logo',
+        'cover_image',
+        'is_active',
+        'foundation_date',
     ];
 
-    /**
-     * Conversions de type
-     */
     protected $casts = [
-        'date_creation' => 'datetime',
+        'is_active' => 'boolean',
+        'foundation_date' => 'date',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
-    /**
-     * Clé primaire configurée selon la migration
-     */
-    protected $primaryKey = 'id';
-    protected $keyType = 'integer';
-    public $incrementing = true;
+    public function applications(): HasMany
+    {
+        return $this->hasMany(Application::class);
+    }
+
+    public function clubUsers(): HasMany
+    {
+        return $this->hasMany(ClubUser::class);
+    }
+
+    public function events(): HasMany
+    {
+        return $this->hasMany(Event::class);
+    }
+
+    public function interviewSlots(): HasMany
+    {
+        return $this->hasMany(InterviewSlot::class);
+    }
 }
