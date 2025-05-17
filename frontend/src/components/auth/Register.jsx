@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import UserTypeSelector from './UserTypeSelector';
 import Input from '../ui/Input';
 import PasswordInput from '../ui/PasswordInput';
 import Button from '../ui/Button';
 import '../../styles/authStyles.css';
 
 const Register = () => {
-  const [selectedType, setSelectedType] = useState('student');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -19,10 +17,6 @@ const Register = () => {
     confirmPassword: '',
     agreeToTerms: false,
   });
-
-  const handleTypeChange = (type) => {
-    setSelectedType(type);
-  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -79,7 +73,13 @@ const Register = () => {
           <h2>Create Your Account</h2>
           <p className="subtitle">Join our platform to access and manage university clubs</p>
 
-          <UserTypeSelector selectedType={selectedType} onTypeChange={handleTypeChange} />
+          {/* Bloc affichant uniquement le rôle Student */}
+          <div className="user-type-selector" style={{ justifyContent: 'center', marginBottom: '20px' }}>
+            <div className="type-option active">
+              <div className="type-label">Student</div>
+              <div className="type-description">Join clubs and events</div>
+            </div>
+          </div>
 
           <form onSubmit={handleSubmit} className="auth-form">
             <div className="form-row">
@@ -117,58 +117,54 @@ const Register = () => {
               />
             </div>
 
-            {selectedType === 'student' && (
-              <>
-                <div className="form-row">
-                  <div className="form-group third">
-                    <Input
-                      label="Student ID"
-                      type="text"
-                      name="studentId"
-                      value={formData.studentId}
-                      onChange={handleChange}
-                      required
-                    />
-                  </div>
-                  <div className="form-group third">
-                    <label>
-                      Year of Study<span className="required">*</span>
-                    </label>
-                    <select
-                      name="yearOfStudy"
-                      value={formData.yearOfStudy}
-                      onChange={handleChange}
-                      required
-                    >
-                      <option value="">Select an option</option>
-                      {yearsOfStudy.map((year) => (
-                        <option key={year} value={year}>
-                          {year}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="form-group third">
-                    <label>
-                      Branch<span className="required">*</span>
-                    </label>
-                    <select
-                      name="branch"
-                      value={formData.branch}
-                      onChange={handleChange}
-                      required
-                    >
-                      <option value="">Select an option</option>
-                      {branches.map((branch) => (
-                        <option key={branch} value={branch}>
-                          {branch}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </>
-            )}
+            <div className="form-row">
+              <div className="form-group third">
+                <Input
+                  label="Student ID"
+                  type="text"
+                  name="studentId"
+                  value={formData.studentId}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="form-group third">
+                <label>
+                  Year of Study<span className="required">*</span>
+                </label>
+                <select
+                  name="yearOfStudy"
+                  value={formData.yearOfStudy}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Select an option</option>
+                  {yearsOfStudy.map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group third">
+                <label>
+                  Branch<span className="required">*</span>
+                </label>
+                <select
+                  name="branch"
+                  value={formData.branch}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Select an option</option>
+                  {branches.map((branch) => (
+                    <option key={branch} value={branch}>
+                      {branch}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
             <div className="form-group">
               <PasswordInput
