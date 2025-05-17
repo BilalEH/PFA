@@ -3,7 +3,7 @@ import React from 'react';
 import '../../styles/authStyles.css';
 
 const UserTypeSelector = ({ selectedType, onTypeChange }) => {
-  const userTypes = [
+  const userTypes = [                                                  
     { id: 'student', label: 'Student', description: 'Join clubs and events' },
     { id: 'club-admin', label: 'Club Admin', description: 'Create and manage clubs' },
     { id: 'system-admin', label: 'System Admin', description: 'Full platform access' }
