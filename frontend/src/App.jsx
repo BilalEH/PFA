@@ -1,11 +1,7 @@
-// src/App.jsx
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import Register from './components/auth/Register';
-import Login from './components/auth/Login';
-import ResetPassword from './components/auth/ResetPassword';
+import {RouterProvider } from 'react-router-dom';
 import './styles/authStyles.css';
-
+import { router } from "./routes";
 function App() {
   return (
     <Routes>
@@ -13,7 +9,7 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="*" element={<Login />} /> {/* fallback vers Login */}
+      <Route path="*" element={<Login />} />
     </Routes>
   );
 }

@@ -3,6 +3,9 @@ import GuestLayout from "../layouts/GuestLayout";
 import StudentLayout from "../layouts/StudentLayout";
 import ClubAdminLayout from "../layouts/ClubAdminLayout";
 import SystemAdminLayout from "../layouts/SystemAdminLayout";
+import Login from "../components/auth/Login";
+import Register from "../components/auth/Register";
+
 
 // Pages publiques
 const HomePage = () => <h1>Bienvenue sur EMSI Clubs</h1>;
@@ -24,8 +27,8 @@ export const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: "clubs", element: <ClubsPage /> },
       { path: "events", element: <EventsPage /> },
-      { path: "login", element: <LoginPage /> },
-      { path: "signup", element: <SignupPage /> }
+      { path: "login", element: <LoginPage/> },
+      { path: "signup", element: <SignupPage/> }
     ]
   },
   {

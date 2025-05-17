@@ -3,10 +3,10 @@
 namespace App\Models;
 
 use App\Enums\UserType;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class User extends Model
+class User extends Authenticatable
 {
     protected $table = 'users';
 
