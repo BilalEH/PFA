@@ -46,17 +46,16 @@
 
 
 
-import axios from 'axios'
+import axios from 'axios';
 
-// Create axios instance with the correct configuration
-export const axiosInstance = axios.create({
-    baseURL: 'http://localhost:8000',
-    withCredentials: true,
-    headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-    },
-    xsrfCookieName: 'XSRF-TOKEN',
-    xsrfHeaderName: 'X-XSRF-TOKEN'
+const axiosInstance = axios.create({
+  baseURL: 'http://localhost:8000',
+  withCredentials: true,
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
+  },
 });
+
+export { axiosInstance };

@@ -4,12 +4,9 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class CreateUsersTable extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
+    public function up()
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
@@ -19,10 +16,10 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->enum('user_type', ['student', 'club_admin', 'system_admin'])->default('student');
-            $table->string('profile_image')->nullable(); // Changed from profile_picture to profile_image
             $table->string('student_id')->nullable();
-            $table->string('major')->nullable();
-            $table->integer('year_of_study')->nullable();
+            $table->string('profile_image')->nullable();
+            $table->string('branch')->nullable(); // Changed from 'major' to match frontend
+            $table->string('year_of_study')->nullable(); // Changed to string to match frontend dropdown
             $table->string('phone_number')->nullable();
             $table->text('bio')->nullable();
             $table->rememberToken();
@@ -30,11 +27,8 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('users');
     }
-};
+}

@@ -5,11 +5,12 @@ namespace App\Models;
 use App\Enums\UserType;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     protected $table = 'users';
-
+    
     protected $fillable = [
         'first_name',
         'last_name',
@@ -18,23 +19,20 @@ class User extends Authenticatable
         'user_type',
         'profile_image',
         'student_id',
-        'major',
+        'branch',
         'year_of_study',
         'phone_number',
         'bio',
-        'remember_token',
-    ];
-
-    protected $casts = [
-        'user_type' => UserType::class,
-        'email_verified_at' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
+    ];
+
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
     ];
 
     public function applications(): HasMany
