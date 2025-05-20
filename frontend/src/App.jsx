@@ -1,20 +1,13 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import Register from './components/auth/Register';
-import Login from './components/auth/Login';
-import ResetPassword from './components/auth/ResetPassword';
-import './styles/authStyles.css';
+import { RouterProvider } from "react-router-dom";
+import { Router} from "./routes";
+import { AuthProvider } from "./apiConfig/user";
 
 function App() {
-  return (
-    <Routes>
-      <Route path="/" element={<Login />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="*" element={<Login />} />
-    </Routes>
-  );
+  return(
+    <AuthProvider>
+      <RouterProvider router={Router} />
+    </AuthProvider>
+  )
 }
 
-export default App;
+export default App; 

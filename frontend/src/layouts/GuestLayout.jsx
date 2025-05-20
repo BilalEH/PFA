@@ -1,12 +1,12 @@
-import { Outlet, Link } from "react-router-dom";
+import {Link, Outlet } from "react-router-dom";
 
 export default function GuestLayout() {
   return (
     <div>
       {/* Entête publique */}
-      <header style={{ 
+      {/* <header style={{ 
         padding: '1rem', 
-        background: '#f0f0f0',
+        background: '#fff3e0',
         display: 'flex',
         gap: '2rem',
         alignItems: 'center'
@@ -17,10 +17,9 @@ export default function GuestLayout() {
           <Link to="/login" style={{ marginRight: '1rem' }}>Connexion</Link>
           <Link to="/signup">Inscription</Link>
         </div>
-      </header>
+      </header> */}
       
-      {/* Contenu principal */}
-      <main style={{ padding: '2rem' }}>
+      <main>
         <Outlet />
       </main>
     </div>
