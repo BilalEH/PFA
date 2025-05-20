@@ -12,7 +12,7 @@ const Register = () => {
     email: '',
     studentId: '',
     yearOfStudy: '',
-    branch: '',
+    branch: '',      
     password: '',
     confirmPassword: '',
     agreeToTerms: false,
