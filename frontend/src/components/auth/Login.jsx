@@ -1,6 +1,6 @@
 // src/components/auth/Login.jsx
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import UserTypeSelector from './UserTypeSelector';
 import Input from '../ui/Input';
 import PasswordInput from '../ui/PasswordInput';
@@ -18,7 +18,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState('');
-  
+  const navigate=useNavigate();
   const handleTypeChange = (type) => {
     setSelectedType(type);
   };
@@ -80,6 +80,7 @@ const Login = () => {
           
           console.log('Login successful:', response.data);
           setMessage('Login successful!');
+          navigate('/student/dashboard'); // Redirect after login
           // Handle successful login (e.g., redirect, set auth state, etc.)
         } catch (err) {
           console.error('Login error:', err);

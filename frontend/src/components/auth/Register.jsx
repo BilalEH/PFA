@@ -1,22 +1,27 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Input from '../ui/Input';
 import PasswordInput from '../ui/PasswordInput';
 import Button from '../ui/Button';
+import { axiosInstance } from '../../apiConfig/axios';
 import '../../styles/authStyles.css';
 
 const Register = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     studentId: '',
     yearOfStudy: '',
-    branch: '',
+    branch: '',      
     password: '',
     confirmPassword: '',
     agreeToTerms: false,
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [message, setMessage] = useState('');
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -26,9 +31,82 @@ const Register = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const getCookie = (name) => {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
+    setLoading(true);
+    setError(null);
+    setMessage('');
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+    if (!formData.agreeToTerms) {
+      setError('You must agree to the Terms of Service and Privacy Policy');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      console.log('Fetching CSRF token...');
+      await axiosInstance.get('/sanctum/csrf-cookie');
+      console.log('CSRF token fetched!');
+      setMessage('CSRF token fetched, attempting registration...');
+
+      setTimeout(async () => {
+        try {
+          console.log('Attempting registration...');
+          const token = getCookie('XSRF-TOKEN');
+          console.log('Found CSRF token in cookie:', token ? 'Yes' : 'No');
+
+          const headers = {};
+          if (token) {
+            headers['X-XSRF-TOKEN'] = decodeURIComponent(token);
+          }
+
+          const response = await axiosInstance.post(
+            '/register',
+            {
+              first_name: formData.firstName,
+              last_name: formData.lastName,
+              email: formData.email,
+              student_id: formData.studentId,
+              year_of_study: formData.yearOfStudy,
+              branch: formData.branch,
+              password: formData.password,
+              password_confirmation: formData.confirmPassword,
+              user_type: 'student',
+            },
+            { headers }
+          );
+
+          console.log('Registration successful:', response.data);
+          setMessage('Registration successful! Redirecting to dashboard...');
+          setTimeout(() => {
+            navigate('/student/dashboard');
+          }, 2000);
+        } catch (err) {
+          console.error('Registration error:', err);
+          setError(err.response?.data?.message || 'Registration failed');
+          setMessage(`Registration failed: ${err.message}`);
+        } finally {
+          setLoading(false);
+        }
+      }, 500);
+    } catch (err) {
+      console.error('CSRF token error:', err);
+      setError('Failed to set CSRF token');
+      setMessage(`CSRF error: ${err.message}`);
+      setLoading(false);
+    }
   };
 
   const branches = [
@@ -73,7 +151,9 @@ const Register = () => {
           <h2>Create Your Account</h2>
           <p className="subtitle">Join our platform to access and manage university clubs</p>
 
-          {/* Bloc affichant uniquement le rôle Student */}
+          {error && <div className="error-message">{error}</div>}
+          {message && <div className="status-message">{message}</div>}
+
           <div className="user-type-selector" style={{ justifyContent: 'center', marginBottom: '20px' }}>
             <div className="type-option active">
               <div className="type-label">Student</div>
@@ -207,8 +287,8 @@ const Register = () => {
               </label>
             </div>
 
-            <Button type="submit" fullWidth>
-              Create Account
+            <Button type="submit" fullWidth disabled={loading}>
+              {loading ? 'Creating Account...' : 'Create Account'}
             </Button>
 
             <p className="auth-footer">
