@@ -18,11 +18,10 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 
 // Routes RESTful pour les ressources principales
 Route::apiResource('users', UserController::class);
-Route::apiResource('feedbacks', FeedbackController::class);
+Route::get('feedbacks', [FeedbackController::class,"index"]);
 Route::apiResource('interviews', InterviewController::class);
 Route::apiResource('interview-slots', InterviewSlotController::class);
 Route::apiResource('notifications', NotificationController::class);
-Route::apiResource('clubs', ClubController::class);   // ← Ligne ajoutée
 Route::middleware('auth:sanctum')->group(function () {
 Route::get('/profile', [ProfileController::class, 'show']);
 Route::patch('/profile', [ProfileController::class, 'update']);
