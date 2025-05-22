@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ClubController;             // ← Ajouté
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\InterviewController;
 use App\Http\Controllers\InterviewSlotController;
@@ -17,10 +18,12 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 
 // Routes RESTful pour les ressources principales
 Route::apiResource('users', UserController::class);
-Route::apiResource('feedbacks', FeedbackController::class);
+Route::get('feedbacks', [FeedbackController::class,"index"]);
 Route::apiResource('interviews', InterviewController::class);
 Route::apiResource('interview-slots', InterviewSlotController::class);
 Route::apiResource('notifications', NotificationController::class);
+Route::apiResource('clubs', ClubController::class);   // ← Ligne ajoutée
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::patch('/profile', [ProfileController::class, 'update']);
