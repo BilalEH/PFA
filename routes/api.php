@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ClubController;             // ← Ajouté
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\InterviewController;
 use App\Http\Controllers\InterviewSlotController;
@@ -21,7 +22,8 @@ Route::apiResource('feedbacks', FeedbackController::class);
 Route::apiResource('interviews', InterviewController::class);
 Route::apiResource('interview-slots', InterviewSlotController::class);
 Route::apiResource('notifications', NotificationController::class);
+Route::apiResource('clubs', ClubController::class);   // ← Ligne ajoutée
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'show']);
-    Route::patch('/profile', [ProfileController::class, 'update']);
+Route::get('/profile', [ProfileController::class, 'show']);
+Route::patch('/profile', [ProfileController::class, 'update']);
 });

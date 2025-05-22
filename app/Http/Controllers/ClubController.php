@@ -3,63 +3,113 @@
 namespace App\Http\Controllers;
 
 use App\Models\Club;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ClubController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function __construct()
     {
-        //
+        $this->middleware('auth:sanctum');
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Liste tous les clubs.
      */
-    public function create()
+    public function index(): JsonResponse
     {
-        //
+        $clubs = Club::all();
+
+        return response()->json([
+            'data' => $clubs,
+        ], 200);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Crée un nouveau club.
+     * Seul le SYSTEM_ADMIN peut exécuter cette action.
      */
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
-        //
+        if (Auth::user()->user_type !== 'system_admin') {
+            return response()->json([
+                'message' => 'Forbidden',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'name'            => 'required|string|max:191',
+            'description'     => 'nullable|string',
+            'rules'           => 'nullable|string',
+            'logo'            => 'nullable|string|max:191',
+            'cover_image'     => 'nullable|string|max:191',
+            'is_active'       => 'boolean',
+            'foundation_date' => 'nullable|date',
+        ]);
+
+        $club = Club::create($validated);
+
+        return response()->json([
+            'message' => 'Club créé',
+            'data'    => $club,
+        ], 201);
     }
 
     /**
-     * Display the specified resource.
+     * Affiche un club spécifique.
      */
-    public function show(Club $club)
+    public function show(Club $club): JsonResponse
     {
-        //
+        return response()->json([
+            'data' => $club,
+        ], 200);
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Met à jour un club existant.
+     * Seul le SYSTEM_ADMIN peut exécuter cette action.
      */
-    public function edit(Club $club)
+    public function update(Request $request, Club $club): JsonResponse
     {
-        //
+        if (Auth::user()->user_type !== 'system_admin') {
+            return response()->json([
+                'message' => 'Forbidden',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'name'            => 'sometimes|required|string|max:191',
+            'description'     => 'nullable|string',
+            'rules'           => 'nullable|string',
+            'logo'            => 'nullable|string|max:191',
+            'cover_image'     => 'nullable|string|max:191',
+            'is_active'       => 'boolean',
+            'foundation_date' => 'nullable|date',
+        ]);
+
+        $club->update($validated);
+
+        return response()->json([
+            'message' => 'Club mis à jour',
+            'data'    => $club,
+        ], 200);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Supprime un club.
+     * Seul le SYSTEM_ADMIN peut exécuter cette action.
      */
-    public function update(Request $request, Club $club)
+    public function destroy(Club $club): JsonResponse
     {
-        //
-    }
+        if (Auth::user()->user_type !== 'system_admin') {
+            return response()->json([
+                'message' => 'Forbidden',
+            ], 403);
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Club $club)
-    {
-        //
+        $club->delete();
+
+        return response()->json(null, 204);
     }
 }
