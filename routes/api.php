@@ -3,11 +3,11 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ClubController;             // ← Ajouté
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\InterviewController;
 use App\Http\Controllers\InterviewSlotController;
 use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\ClubController;
 use App\Http\Controllers\test;
 use App\Http\Controllers\Auth\ProfileController;
 
@@ -17,7 +17,7 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 });
 
 Route::apiResource('users', UserController::class);
-Route::apiResource('feedbacks', FeedbackController::class);
+Route::get('feedbacks', [FeedbackController::class,"index"]);
 Route::apiResource('interviews', InterviewController::class);
 Route::apiResource('interview-slots', InterviewSlotController::class);
 Route::apiResource('notifications', NotificationController::class);
