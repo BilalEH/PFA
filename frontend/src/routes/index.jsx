@@ -8,7 +8,8 @@ import Login from '../components/auth/Login';
 import Register from '../components/auth/Register';
 import HomePage from '../components/auth/home';
 import Profile from '../components/users/Profil';
-
+import ClubApplication from '../components/student/clubApplication';
+import ClubsToInterview from '../components/student/clubsToInterVue';
 const ClubsPage = () => <h1>Liste des clubs disponibles</h1>;
 const EventsPage = () => <h1>Événements à venir</h1>;
 
@@ -41,7 +42,10 @@ export const Router = createBrowserRouter([
       { path: 'dashboard', element: <StudentDashboard /> },
       { path: 'applications', element: <h1>Mes candidatures</h1> },
       { path: 'events', element: <h1>Événements étudiants</h1> },
+      { path: 'clubs', element: <ClubsToInterview/> },
+      { path: 'aplications', element: <h1>aplications étudiants</h1> },
       { path: 'profile', element: <Profile /> },
+      { path: 'apply/:ApplicationId', element: <ClubApplication /> },
     ],
   },
   {

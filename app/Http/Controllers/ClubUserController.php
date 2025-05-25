@@ -12,7 +12,7 @@ class ClubUserController extends Controller
      */
     public function index()
     {
-        //
+        
     }
 
     /**
