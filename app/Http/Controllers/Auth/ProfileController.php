@@ -55,27 +55,43 @@ class ProfileController extends Controller
     //     $user->update($validated);
     //     return response()->json(['message' => 'Profile updated successfully!', 'user' => $user]);
     // }
-public function updateProfile(Request $request)
-{
-    $user = Auth::user();
-    if (!$user) {
-        return response()->json(['message' => 'Unauthenticated'], 401);
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+
+        $validated = $request->validate([
+            'first_name' => 'sometimes|string|max:255',
+            'last_name' => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|unique:users,email,' . $user->id,
+            'phone_number' => 'nullable|string|max:20',
+            'bio' => 'nullable|string|max:500',
+            'profile_image' => 'nullable|url', // Validate as URL instead of file
+            'student_id' => 'nullable|string|max:50',
+            'major' => 'nullable|string|max:100',
+            'year_of_study' => 'nullable|integer|min:1|max:10',
+            'user_type' => 'sometimes|in:student,club_admin,system_admin',
+        ]);
+
+        $user->update($validated);
+        return response()->json(['message' => 'Profile updated successfully!', 'user' => $user]);
     }
 
-    $validated = $request->validate([
-        'first_name' => 'sometimes|string|max:255',
-        'last_name' => 'sometimes|string|max:255',
-        'email' => 'sometimes|email|unique:users,email,' . $user->id,
-        'phone_number' => 'nullable|string|max:20',
-        'bio' => 'nullable|string|max:500',
-        'profile_image' => 'nullable|url', // Validate as URL instead of file
-        'student_id' => 'nullable|string|max:50',
-        'major' => 'nullable|string|max:100',
-        'year_of_study' => 'nullable|integer|min:1|max:10',
-        'user_type' => 'sometimes|in:student,club_admin,system_admin',
-    ]);
+    public function getUserAplcations()
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
 
-    $user->update($validated);
-    return response()->json(['message' => 'Profile updated successfully!', 'user' => $user]);
-}
+        // Eager load the club relationship
+        $applications = $user->applications()->with('club')->get();
+
+        return response()->json([
+            'applications' => $applications,
+            'message' => 'User applications retrieved successfully.'
+        ], 200);
+    }
 }
