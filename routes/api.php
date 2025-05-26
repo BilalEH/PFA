@@ -9,6 +9,7 @@ use App\Http\Controllers\InterviewController;
 use App\Http\Controllers\InterviewSlotController;
 use App\Http\Controllers\NotificationController;    
 use App\Http\Controllers\Auth\ProfileController;
+use App\Http\Controllers\EventController; 
 
 // Route protégée par Sanctum pour récupérer l'utilisateur connecté
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
@@ -22,6 +23,8 @@ Route::get('feedbacks', [FeedbackController::class,"index"]);
 Route::apiResource('interviews', InterviewController::class);
 Route::apiResource('interview-slots', InterviewSlotController::class);
 Route::apiResource('notifications', NotificationController::class);
+Route::apiResource('clubs', ClubController::class);
+Route::apiResource('events', EventController::class);   // ← Ligne ajoutée
 Route::middleware('auth:sanctum')->group(function () {
 Route::get('/profile', [ProfileController::class, 'show']);
 Route::patch('/profile', [ProfileController::class, 'update']);
