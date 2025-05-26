@@ -112,4 +112,47 @@ class ClubController extends Controller
 
         return response()->json(null, 204);
     }
+
+    public function getinterViewSlotsList(Club $club)
+    {
+        // Get all interview slots related to the club
+        $interviews = $club->interviewSlots;
+
+        // If there are no interview slots, return an appropriate response
+        if ($interviews->isEmpty()) {
+            return response()->json(['message' => 'No interview slots found.'], 404);
+        }
+
+        // Get the last interview slot
+        $lastInterview = $interviews->last();
+
+        $startDate = Carbon::parse($lastInterview->start_time);
+        $endDate = Carbon::parse($lastInterview->end_time);
+        $now = Carbon::now();
+
+        // Check if now is within the start and end time
+        $isOngoing = $now->between($startDate, $endDate);
+
+        // Calculate remaining days if it's ongoing
+        $daysLeft = $isOngoing ? $now->diffInDays($endDate, false) : null;
+
+        return response()->json([
+            'interviews' => $interviews,
+            'lastInterview' => $lastInterview,
+            'isOngoing' => $isOngoing,
+            'daysLeft' => $daysLeft // this will be null if not ongoing
+        ], 200);
+    }
+
+    public function getEventsList(Club $club)
+    {
+        $events = $club->events;
+        return response()->json($events);
+    }
+
+    public function getApplication(Interview $interview)
+    {
+        // $applications = $interview->application;
+        return response()->json($interview);
+    }
 }
