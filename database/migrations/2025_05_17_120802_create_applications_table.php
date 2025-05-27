@@ -16,7 +16,6 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('club_id')->constrained()->onDelete('cascade');
             $table->text('motivation');
-            $table->json('answers')->nullable(); // To store answers to custom questions
             $table->enum('status', ['pending', 'interview_scheduled', 'accepted', 'rejected'])->default('pending');
             $table->timestamps();
         });

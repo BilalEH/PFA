@@ -5,12 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-
+use Illuminate\Support\Facades\Auth;
 class UserController extends Controller
 {
     /**
      * Affiche tous les utilisateurs.
      */
+
+
+
+     
     public function index()
     {
         $users = User::with([
@@ -21,9 +25,16 @@ class UserController extends Controller
             'interviews',
             'notifications'
         ])->get();
-
         return response()->json($users);
     }
+
+
+    public function ClubTest()
+    {
+        $userClub = Auth::user()->clubUsers;
+        return response()->json(['clubs'=>$userClub,'count'=>$userClub->count()]);
+    }
+
 
     /**
      * Crée un nouvel utilisateur.
@@ -105,5 +116,14 @@ class UserController extends Controller
         $user->delete();
 
         return response()->json(['message' => 'Utilisateur supprimé avec succès.']);
+    }
+
+    public function GetUserClub($id)
+    {
+        $user= User::findOrFail($id);
+        if($user && $user['user_type']==='student')
+        {
+            return response()->json($user->clubUsers());
+        }return response()->json(['error'=>'enly for students']);
     }
 }
