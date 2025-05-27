@@ -75,4 +75,5 @@ class InterviewController extends Controller
 
         return response()->json(['message' => 'Interview supprimée avec succès.']);
     }
+    
 }

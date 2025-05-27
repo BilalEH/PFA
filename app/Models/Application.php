@@ -14,13 +14,11 @@ class Application extends Model
         'user_id',
         'club_id',
         'motivation',
-        'answers',
         'status',
     ];
 
     protected $casts = [
         'status' => ApplicationStatus::class,
-        'answers' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

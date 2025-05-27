@@ -110,4 +110,42 @@ class EventController extends Controller
             'requires_registration' => 'required|boolean',
         ];
     }
+
+    public function getpublicEvents()
+    {
+        $events = Event::with([
+                'club',
+                'eventUsers.user:id,first_name,last_name,profile_image',
+                'feedback.user:id,first_name,last_name,profile_image' // Eager load user for feedback
+            ])
+            ->where('is_public', true)
+            ->latest()
+            ->get();
+
+        // Add number of users for each event and format feedback users
+        $events = $events->map(function ($event) {
+            $event->users_count = $event->eventUsers->count();
+            $event->users = $event->eventUsers->map(function ($eu) {
+                return $eu->user;
+            });
+            unset($event->eventUsers);
+
+            // Format feedback: replace user_id by nameId and profileImage
+            $event->feedback = $event->feedback->map(function ($fb) {
+                if ($fb->user) {
+                    $fb->nameId = $fb->user->first_name . ' ' . $fb->user->last_name;
+                    $fb->profileImage = $fb->user->profile_image;
+                } else {
+                    $fb->nameId = null;
+                    $fb->profileImage = null;
+                }
+                unset($fb->user_id, $fb->user);
+                return $fb;
+            });
+
+            return $event;
+        });
+
+        return response()->json($events);
+    }
 }
