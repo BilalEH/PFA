@@ -12,7 +12,6 @@ class ProfileController extends Controller
 {
     public function show(Request $request): JsonResponse
     {
-        \Log::info('Profile show endpoint hit by user: ' . Auth::id());
         return response()->json([
             'user' => Auth::user(),
         ]);
@@ -22,15 +21,15 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
 
-        \Log::info('Profile update attempt for user: ' . $user->id, $request->all());
 
         $validated = $request->validate([
             'phone_number' => ['nullable', 'string', 'max:20'],
             'bio' => ['nullable', 'string', 'max:1000'],
             'profile_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+            'branch' => ['nullable', 'string', 'max:255'],
+            'year_of_study' => ['nullable', 'string', 'max:255'],
         ]);
 
-        \Log::info('Validated data: ', $validated);
 
         if ($request->hasFile('profile_image')) {
             if ($user->profile_image) {
@@ -39,10 +38,12 @@ class ProfileController extends Controller
             $path = $request->file('profile_image')->store('profile_images', 'public');
             $validated['profile_image'] = $path;
         }
+        $updated = $user->update($validated);
 
-        $user->update($validated);
+        if (!$updated) {
+            return response()->json(['message' => 'Failed to update profile'], 500);
+        }
 
-        \Log::info('User updated: ', $user->toArray());
 
         return response()->json([
             'message' => 'Profile updated successfully',

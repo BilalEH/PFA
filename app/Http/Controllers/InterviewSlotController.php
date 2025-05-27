@@ -26,7 +26,7 @@ class InterviewSlotController extends Controller
             'start_time'       => 'required|date',
             'end_time'         => 'required|date|after:start_time',
             'max_interviews'   => 'required|integer|min:1',
-            'booked_interviews'=> 'nullable|integer|min:0',
+            'booked_interviews' => 'nullable|integer|min:0',
             'location'         => 'nullable|string|max:255',
             'is_online'        => 'required|boolean',
         ]);

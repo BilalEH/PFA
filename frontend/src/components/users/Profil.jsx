@@ -11,6 +11,8 @@ const Profile = () => {
     phoneNumber: '',
     bio: '',
     profileImage: null,
+    branch: '',
+    yearOfStudy: '',
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -27,16 +29,21 @@ const Profile = () => {
           phoneNumber: user.phone_number || '',
           bio: user.bio || '',
           profileImage: null,
+          branch: user.branch || '',
+          yearOfStudy: user.year_of_study || '',
         });
       } catch (err) {
         console.error('Fetch profile error:', err.response?.status, err.response?.data || err.message);
+        if (err.response?.status === 401) {
+          navigate('/login');
+        }
         setError('Failed to load profile data. Please try again.');
       } finally {
         setLoading(false);
       }
     };
     fetchProfile();
-  }, []);
+  }, [navigate]);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -62,6 +69,8 @@ const Profile = () => {
       const formDataToSend = new FormData();
       formDataToSend.append('phone_number', formData.phoneNumber);
       formDataToSend.append('bio', formData.bio);
+      formDataToSend.append('branch', formData.branch);
+      formDataToSend.append('year_of_study', formData.yearOfStudy);
       if (formData.profileImage) {
         formDataToSend.append('profile_image', formData.profileImage);
       }
@@ -87,6 +96,8 @@ const Profile = () => {
         phoneNumber: updatedUser.phone_number || '',
         bio: updatedUser.bio || '',
         profileImage: null,
+        branch: updatedUser.branch || '',
+        yearOfStudy: updatedUser.year_of_study || '',
       });
     } catch (err) {
       console.error('Profile update error:', err.response?.status, err.response?.data || err.message);
@@ -135,6 +146,28 @@ const Profile = () => {
             </div>
 
             <div className="form-group">
+              <Input
+                label="Branch"
+                type="text"
+                name="branch"
+                value={formData.branch}
+                onChange={handleChange}
+                placeholder="e.g., Computer Science"
+              />
+            </div>
+
+            <div className="form-group">
+              <Input
+                label="Year of Study"
+                type="text"
+                name="yearOfStudy"
+                value={formData.yearOfStudy}
+                onChange={handleChange}
+                placeholder="e.g., 3rd Year"
+              />
+            </div>
+
+            <div className="form-group">
               <label>Profile Image</label>
               <input
                 type="file"
@@ -143,6 +176,9 @@ const Profile = () => {
                 onChange={handleChange}
                 className="form-control"
               />
+              {formData.profileImage && (
+                <p>Selected file: {formData.profileImage.name}</p>
+              )}
             </div>
 
             <Button type="submit" fullWidth disabled={loading}>

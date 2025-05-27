@@ -8,6 +8,7 @@ import Login from '../components/auth/Login';
 import Register from '../components/auth/Register';
 import HomePage from '../components/auth/home';
 import Profile from '../components/users/Profil';
+import ApiTestPage from '../components/users/ApiTestPage';
 
 const ClubsPage = () => <h1>Liste des clubs disponibles</h1>;
 const EventsPage = () => <h1>Événements à venir</h1>;
@@ -38,6 +39,7 @@ export const Router = createBrowserRouter([
     path: '/student',
     element: <StudentLayout />,
     children: [
+      { path: 'test', element: <ApiTestPage /> },
       { path: 'dashboard', element: <StudentDashboard /> },
       { path: 'applications', element: <h1>Mes candidatures</h1> },
       { path: 'events', element: <h1>Événements étudiants</h1> },
