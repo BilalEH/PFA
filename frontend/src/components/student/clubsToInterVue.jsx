@@ -172,8 +172,7 @@ const ClubsToInterview = () => {
         };
       }
       
-      const isAvailable = interview.booked_interviews < interview.max_interviews && 
-                         !isPast(end);
+      const isAvailable = interview.booked_interviews < interview.max_interviews && !isPast(end);
 
       slotsByDay[dayKey].slots.push({
         ...interview,

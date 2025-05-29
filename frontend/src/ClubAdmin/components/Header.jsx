@@ -1,8 +1,20 @@
 import { Bell, User, LogOut } from 'lucide-react'
-import { useAuth } from '../contexts/AuthContext'
 
 function Header() {
-  const { user, club, logout } = useAuth()
+  // Replace dynamic context data with static dummy data
+  const user = {
+    first_name: 'John',
+    last_name: 'Doe',
+  }
+
+  const club = {
+    name: 'Awesome Club',
+    role: 'admin_manager',
+  }
+
+  const logout = () => {
+    alert('Logout clicked')
+  }
 
   return (
     <header className="bg-white border-b border-gray-200 shadow-sm">
@@ -12,23 +24,23 @@ function Header() {
             {club?.name || 'Club Dashboard'}
           </h1>
         </div>
-        
+
         <div className="flex items-center space-x-4">
           <button className="relative p-2 rounded-full hover:bg-gray-100" aria-label="Notifications">
             <Bell size={20} className="text-gray-600" />
             <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
           </button>
-          
+
           <div className="flex items-center">
             <div className="mr-3 text-right">
               <p className="text-sm font-medium text-gray-800">
-                {user?.first_name} {user?.last_name}
+                {user.first_name} {user.last_name}
               </p>
               <p className="text-xs text-gray-500 capitalize">
-                {club?.role?.replace('_', ' ') || ''}
+                {club.role.replace('_', ' ')}
               </p>
             </div>
-            
+
             <div className="relative group">
               <button
                 className="flex items-center justify-center w-10 h-10 bg-gray-200 rounded-full hover:bg-gray-300"
@@ -36,7 +48,7 @@ function Header() {
               >
                 <User size={20} className="text-gray-600" />
               </button>
-              
+
               <div className="absolute right-0 hidden mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 group-hover:block">
                 <a
                   href="#profile"

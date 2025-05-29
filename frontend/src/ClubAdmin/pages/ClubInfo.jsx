@@ -1,13 +1,34 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { MapPin, Edit } from 'lucide-react'
+import axios from 'axios'
 
-export default function ClubInfo() {
+export default function ClubInfo({ clubId = 2 }) {
+  const [club, setClub] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchClub = async () => {
+      try {
+        const response = await axios.get(`/api/clubs/${clubId}`)
+        setClub(response.data)
+      } catch (error) {
+        console.error('Failed to fetch club:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchClub()
+  }, [clubId])
+
+  if (loading) return <div>Loading club info...</div>
+  if (!club) return <div>Club not found.</div>
+
   return (
     <div className="space-y-6">
       <div className="relative h-48 bg-gray-200 rounded-lg overflow-hidden">
-        {/* bannière */}
         <img
-          src="https://via.placeholder.com/1200x300"
+          src={club.cover_image || 'https://via.placeholder.com/1200x300'}
           alt="Club Banner"
           className="object-cover w-full h-full"
         />
@@ -24,37 +45,32 @@ export default function ClubInfo() {
           <div className="flex items-center space-x-4">
             <div className="w-24 h-24 bg-gray-300 rounded-lg overflow-hidden">
               <img
-                src="https://via.placeholder.com/96"
+                src={club.logo || 'https://via.placeholder.com/96'}
                 alt="Club Logo"
                 className="object-cover w-full h-full"
               />
             </div>
             <div>
-              <h3 className="text-xl font-bold">Computer Science Club</h3>
+              <h3 className="text-xl font-bold">{club.name}</h3>
               <div className="flex items-center text-gray-600 space-x-1">
                 <MapPin className="w-4 h-4" />
-                <span>Science Building, Room 305</span>
+                <span>{club.location || 'No location provided'}</span>
               </div>
             </div>
           </div>
 
           <div>
             <h4 className="font-medium">About the Club</h4>
-            <p className="mt-1 text-gray-700">
-              A community for students passionate about computer science and technology. We
-              organize workshops, hackathons, and guest lectures to help members develop their
-              technical skills and network with industry professionals.
-            </p>
+            <p className="mt-1 text-gray-700">{club.description}</p>
           </div>
 
           <div>
             <h4 className="font-medium">Club Rules</h4>
-            <ol className="mt-1 list-decimal list-inside text-gray-700 space-y-1">
-              <li>Respect all members</li>
-              <li>Attend at least 50% of club meetings</li>
-              <li>Participate in at least one club project per semester</li>
-              <li>Follow the university code of conduct</li>
-            </ol>
+            {club.rules ? (
+              <p className="mt-1 text-gray-700">{club.rules}</p>
+            ) : (
+              <p className="mt-1 text-gray-400 italic">No rules defined</p>
+            )}
           </div>
         </div>
 
@@ -64,34 +80,23 @@ export default function ClubInfo() {
           <dl className="space-y-2 text-gray-800">
             <div>
               <dt className="font-semibold">Club Name</dt>
-              <dd>Computer Science Club</dd>
+              <dd>{club.name}</dd>
             </div>
             <div>
               <dt className="font-semibold">Founded</dt>
-              <dd>September 15, 2018</dd>
-            </div>
-            <div>
-              <dt className="font-semibold">Location</dt>
-              <dd>Science Building, Room 305</dd>
-            </div>
-            <div>
-              <dt className="font-semibold">Website</dt>
               <dd>
-                <a
-                  href="https://cs-club.university.edu"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-blue-600 hover:underline"
-                >
-                  cs-club.university.edu ↗
-                </a>
+                {club.foundation_date
+                  ? new Date(club.foundation_date).toLocaleDateString()
+                  : 'N/A'}
               </dd>
             </div>
             <div>
               <dt className="font-semibold">Status</dt>
               <dd>
-                <span className="inline-block px-2 py-0.5 bg-green-100 text-green-800 text-sm rounded">
-                  Active
+                <span className={`inline-block px-2 py-0.5 text-sm rounded ${
+                  club.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                }`}>
+                  {club.is_active ? 'Active' : 'Inactive'}
                 </span>
               </dd>
             </div>

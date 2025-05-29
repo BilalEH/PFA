@@ -1,5 +1,5 @@
-import { Calendar, Users, Bell, Activity } from 'lucide-react'
-import { useAuth } from '../contexts/AuthContext'
+import React, { useEffect, useState } from 'react';
+import { Calendar, Users, Bell, Activity } from 'lucide-react';
 
 function StatCard({ title, value, icon: Icon, color }) {
   return (
@@ -14,7 +14,7 @@ function StatCard({ title, value, icon: Icon, color }) {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function UpcomingEvent({ title, date, participants }) {
@@ -29,7 +29,7 @@ function UpcomingEvent({ title, date, participants }) {
         <span className="text-sm text-gray-600">{participants}</span>
       </div>
     </div>
-  )
+  );
 }
 
 function PendingInterview({ student, date, time }) {
@@ -38,57 +38,82 @@ function PendingInterview({ student, date, time }) {
       <div className="flex-1">
         <h3 className="font-medium text-gray-800">{student}</h3>
         <p className="text-sm text-gray-500">
-          {date} at {time}
+          {date} à {time}
         </p>
       </div>
       <div className="flex space-x-2">
         <button className="px-3 py-1 text-xs font-medium text-white bg-green-500 rounded-md hover:bg-green-600">
-          Accept
+          Accepter
         </button>
         <button className="px-3 py-1 text-xs font-medium text-white bg-red-500 rounded-md hover:bg-red-600">
-          Decline
+          Refuser
         </button>
       </div>
     </div>
-  )
+  );
 }
 
 function Dashboard() {
-  const { club } = useAuth()
+  const [stats, setStats] = useState({});
+  const [events, setEvents] = useState([]);
+  const [interviews, setInterviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [club, setClub] = useState({ name: 'Club Générique' });
 
-  // Mock data – remplacer par un fetch réel en production
-  const stats = [
-    { title: 'Total Members', value: 42, icon: Users, color: 'bg-blue-500' },
-    { title: 'Pending Interviews', value: 7, icon: Calendar, color: 'bg-orange-500' },
-    { title: 'Upcoming Events', value: 3, icon: Bell, color: 'bg-purple-500' },
-    { title: 'Active Projects', value: 12, icon: Activity, color: 'bg-green-500' },
-  ]
+  useEffect(() => {
+    const fetchData = async () => {
+      // Simulate async data fetching
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setStats({
+        members: 42,
+        pendingInterviews: 3,
+        upcomingEvents: 2,
+        activeProjects: 5,
+      });
+      setEvents([
+        { id: 1, title: 'Hackathon Étudiant', start_date: new Date(), participants: 25 },
+        { id: 2, title: 'Réunion mensuelle', start_date: new Date(), participants: 10 },
+      ]);
+      setInterviews([
+        {
+          id: 1,
+          student_name: 'Adam Elhadi',
+          scheduled_at: new Date(),
+        },
+        {
+          id: 2,
+          student_name: 'Lina Elhadi',
+          scheduled_at: new Date(),
+        },
+      ]);
+      setLoading(false);
+    };
 
-  const upcomingEvents = [
-    { title: 'Coding Workshop', date: 'May 15, 2025', participants: 18 },
-    { title: 'Game Night', date: 'May 22, 2025', participants: 24 },
-    { title: 'Industry Speaker', date: 'June 3, 2025', participants: 35 },
-  ]
+    fetchData();
+  }, []);
 
-  const pendingInterviews = [
-    { student: 'Maria Garcia', date: 'May 10, 2025', time: '2:00 PM' },
-    { student: 'James Wilson', date: 'May 11, 2025', time: '3:30 PM' },
-    { student: 'Emma Chen', date: 'May 12, 2025', time: '10:00 AM' },
-  ]
+  if (loading) return <div>Chargement...</div>;
+
+  const statCards = [
+    { title: 'Membres', value: stats.members, icon: Users, color: 'bg-blue-500' },
+    { title: 'Entretiens en attente', value: stats.pendingInterviews, icon: Calendar, color: 'bg-orange-500' },
+    { title: 'Événements à venir', value: stats.upcomingEvents, icon: Bell, color: 'bg-purple-500' },
+    { title: 'Projets actifs', value: stats.activeProjects, icon: Activity, color: 'bg-green-500' },
+  ];
 
   return (
     <div>
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-800">
-          Welcome back to {club?.name}
+          Bienvenue sur {club.name}
         </h2>
         <p className="text-gray-600">
-          Here's what's happening with your club today.
+          Résumé des activités de votre club
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat) => (
+        {statCards.map((stat) => (
           <StatCard
             key={stat.title}
             title={stat.title}
@@ -102,54 +127,57 @@ function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="p-4 border-b border-gray-200">
-            <h2 className="font-semibold text-gray-800">Upcoming Events</h2>
+            <h2 className="font-semibold text-gray-800">Événements à venir</h2>
           </div>
           <div className="divide-y divide-gray-200">
-            {upcomingEvents.map((event) => (
+            {events.map((event) => (
               <UpcomingEvent
-                key={event.title}
+                key={event.id}
                 title={event.title}
-                date={event.date}
+                date={new Date(event.start_date).toLocaleDateString('fr-FR')}
                 participants={event.participants}
               />
             ))}
           </div>
           <div className="p-4 border-t border-gray-200 bg-gray-50">
             <a
-              href="/events"
+              href="#"
               className="text-sm font-medium text-blue-600 hover:text-blue-800"
             >
-              View all events →
+              Voir tous les événements →
             </a>
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="p-4 border-b border-gray-200">
-            <h2 className="font-semibold text-gray-800">Pending Interviews</h2>
+            <h2 className="font-semibold text-gray-800">Entretiens en attente</h2>
           </div>
           <div className="divide-y divide-gray-200">
-            {pendingInterviews.map((interview) => (
+            {interviews.map((interview) => (
               <PendingInterview
-                key={interview.student}
-                student={interview.student}
-                date={interview.date}
-                time={interview.time}
+                key={interview.id}
+                student={interview.student_name}
+                date={new Date(interview.scheduled_at).toLocaleDateString('fr-FR')}
+                time={new Date(interview.scheduled_at).toLocaleTimeString('fr-FR', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
               />
             ))}
           </div>
           <div className="p-4 border-t border-gray-200 bg-gray-50">
             <a
-              href="/interviews"
+              href="#"
               className="text-sm font-medium text-blue-600 hover:text-blue-800"
             >
-              Manage all interviews →
+              Gérer les entretiens →
             </a>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default Dashboard
+export default Dashboard;

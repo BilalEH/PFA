@@ -9,9 +9,8 @@ import {
   Filter,
   X
 } from 'lucide-react'
-import { useAuth } from '../contexts/AuthContext'
 
-// Un seul item d'entretien
+// Component: One interview card
 function InterviewItem({ interview, onUpdateStatus }) {
   const statusColors = {
     pending: 'bg-yellow-100 text-yellow-800',
@@ -131,11 +130,13 @@ function InterviewItem({ interview, onUpdateStatus }) {
 }
 
 function Interviews() {
-  const { club } = useAuth()
+  // Removed context — dummy club name
+  const club = { name: 'Example Club' }
+
   const [searchTerm, setSearchTerm] = useState('')
   const [filter, setFilter] = useState('all')
 
-  // Données mockées – à remplacer par un appel API réel
+  // Mock data (replace with API call if needed)
   const [interviews, setInterviews] = useState([
     {
       id: '1',
@@ -189,14 +190,11 @@ function Interviews() {
 
   const handleUpdateStatus = (id, status) => {
     setInterviews(
-      interviews.map((iv) =>
-        iv.id === id ? { ...iv, status } : iv
-      )
+      interviews.map((iv) => (iv.id === id ? { ...iv, status } : iv))
     )
     alert(`Interview status updated to ${status} for ID ${id}`)
   }
 
-  // Filtrage selon recherche et statut
   const filteredInterviews = interviews.filter((iv) => {
     const matchesName = iv.student_name
       .toLowerCase()
@@ -209,7 +207,7 @@ function Interviews() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">
-          Interview Requests
+          {club.name} – Interview Requests
         </h2>
       </div>
 

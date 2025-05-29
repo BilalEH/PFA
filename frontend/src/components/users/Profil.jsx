@@ -105,7 +105,7 @@ const Profile = () => {
       }
     };
     fetchProfile();
-  }, []);
+  }, [navigate]);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
