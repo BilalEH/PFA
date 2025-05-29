@@ -7,10 +7,12 @@ import {
   MessageSquare,
   Settings
 } from 'lucide-react'
-import { useAuth } from '../contexts/AuthContext'
 
 function Sidebar() {
-  const { club } = useAuth()
+  // Static dummy data for club
+  const club = {
+    role: 'admin', // try 'president', 'admin', or other roles to test conditional rendering
+  }
 
   const navigation = [
     { name: 'Dashboard', to: '/', icon: Home, end: true },
@@ -46,7 +48,7 @@ function Sidebar() {
         ))}
       </nav>
 
-      {(club?.role === 'president' || club?.role === 'admin') && (
+      {(club.role === 'president' || club.role === 'admin') && (
         <div className="p-4 border-t border-gray-200">
           <NavLink
             to="/settings"

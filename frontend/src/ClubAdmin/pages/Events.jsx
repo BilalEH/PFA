@@ -11,14 +11,11 @@ import {
   Filter,
   X
 } from 'lucide-react'
-import { useAuth } from '../contexts/AuthContext'
 
 // Carte d’un événement individuel
 function EventCard({ event, onEdit, onDelete }) {
-  const { club } = useAuth()
-  const canManage = ['president', 'vice_president', 'admin'].includes(
-    club?.role || ''
-  )
+  // Dummy permission
+  const canManage = true
 
   const statusColors = {
     pending: 'bg-yellow-100 text-yellow-800',
@@ -66,7 +63,8 @@ function EventCard({ event, onEdit, onDelete }) {
               })}
               {event.end_date &&
                 event.start_date !== event.end_date && (
-                  <> -{' '}
+                  <>
+                    {' - '}
                     {new Date(event.end_date).toLocaleDateString('en-US', {
                       weekday: 'short',
                       month: 'short',
@@ -129,17 +127,15 @@ function EventCard({ event, onEdit, onDelete }) {
 
 // Page principale des événements
 function Events() {
-  const { club } = useAuth()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
 
-  // Données mockées – à remplacer par un appel API
   const [events, setEvents] = useState([
     {
       id: '1',
       title: 'Coding Workshop',
       description:
-        'Learn the basics of web development with HTML, CSS, and JavaScript. This workshop is perfect for beginners who want to start their journey in web development.',
+        'Learn the basics of web development with HTML, CSS, and JavaScript.',
       start_date: '2025-05-15T13:00:00',
       end_date: '2025-05-15T16:00:00',
       location: 'Science Building, Room 305',
@@ -148,14 +144,12 @@ function Events() {
         'https://images.pexels.com/photos/7108/notebook-computer-chill-relax.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
       is_public: true,
       requires_registration: true,
-      status: 'approved',
-      club_id: '1'
+      status: 'approved'
     },
     {
       id: '2',
       title: 'Game Night',
-      description:
-        'Join us for a fun night of board games and video games. Bring your favorite games and make new friends!',
+      description: 'Join us for a fun night of board games and video games.',
       start_date: '2025-05-22T18:00:00',
       end_date: '2025-05-22T22:00:00',
       location: 'Student Union, Room 200',
@@ -164,48 +158,26 @@ function Events() {
         'https://images.pexels.com/photos/278918/pexels-photo-278918.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
       is_public: true,
       requires_registration: false,
-      status: 'approved',
-      club_id: '1'
+      status: 'approved'
     },
     {
       id: '3',
-      title: 'Industry Speaker: AI in Healthcare',
-      description:
-        'Dr. Sarah Johnson from MedTech Solutions will discuss how artificial intelligence is transforming healthcare. Learn about the latest innovations and career opportunities in this exciting field.',
+      title: 'AI in Healthcare',
+      description: 'Dr. Sarah Johnson discusses AI in healthcare.',
       start_date: '2025-06-03T14:00:00',
       end_date: '2025-06-03T16:00:00',
-      location: 'Medical Sciences Building, Auditorium',
+      location: 'Medical Sciences Building',
       max_participants: 100,
       cover_image:
         'https://images.pexels.com/photos/40568/medical-appointment-doctor-healthcare-40568.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
       is_public: true,
       requires_registration: true,
-      status: 'pending',
-      club_id: '1'
-    },
-    {
-      id: '4',
-      title: 'Hackathon Planning Meeting',
-      description:
-        'Internal meeting to plan our upcoming hackathon. We will discuss themes, sponsors, prizes, and logistics.',
-      start_date: '2025-05-10T10:00:00',
-      end_date: '2025-05-10T12:00:00',
-      location: 'Computer Science Building, Room 201',
-      max_participants: 15,
-      is_public: false,
-      requires_registration: false,
-      status: 'approved',
-      club_id: '1'
+      status: 'pending'
     }
   ])
 
-  const canCreateEvents = ['president', 'vice_president', 'secretary', 'admin'].includes(
-    club?.role || ''
-  )
-
   const handleEditEvent = (id) => {
     alert(`Edit event with ID ${id}`)
-    // en prod on ferait une navigation vers un formulaire d’édition
   }
 
   const handleDeleteEvent = (id) => {
@@ -215,7 +187,6 @@ function Events() {
     }
   }
 
-  // Application des filtres
   const filteredEvents = events.filter((evt) => {
     const titleMatch = evt.title.toLowerCase().includes(searchTerm.toLowerCase())
     const descriptionMatch = evt.description
@@ -232,12 +203,10 @@ function Events() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Events</h2>
-        {canCreateEvents && (
-          <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-            <Plus className="h-5 w-5 mr-2" />
-            Create Event
-          </button>
-        )}
+        <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+          <Plus className="h-5 w-5 mr-2" />
+          Create Event
+        </button>
       </div>
 
       <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">

@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
-// import { useAuth } from './AuthContext';
 import { Calendar, Users, Bell, Activity } from 'lucide-react';
-import axios from 'axios';
 
 function StatCard({ title, value, icon: Icon, color }) {
   return (
@@ -56,28 +54,43 @@ function PendingInterview({ student, date, time }) {
 }
 
 function Dashboard() {
-  const { club } = useAuth();
   const [stats, setStats] = useState({});
   const [events, setEvents] = useState([]);
   const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [club, setClub] = useState({ name: 'Club Générique' });
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const response = await axios.get(`/api/dashboard/${club.id}`);
-        setStats(response.data.stats);
-        setEvents(response.data.events);
-        setInterviews(response.data.interviews);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setLoading(false);
-      }
+      // Simulate async data fetching
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setStats({
+        members: 42,
+        pendingInterviews: 3,
+        upcomingEvents: 2,
+        activeProjects: 5,
+      });
+      setEvents([
+        { id: 1, title: 'Hackathon Étudiant', start_date: new Date(), participants: 25 },
+        { id: 2, title: 'Réunion mensuelle', start_date: new Date(), participants: 10 },
+      ]);
+      setInterviews([
+        {
+          id: 1,
+          student_name: 'Adam Elhadi',
+          scheduled_at: new Date(),
+        },
+        {
+          id: 2,
+          student_name: 'Lina Elhadi',
+          scheduled_at: new Date(),
+        },
+      ]);
+      setLoading(false);
     };
 
-    if (club?.id) fetchData();
-  }, [club]);
+    fetchData();
+  }, []);
 
   if (loading) return <div>Chargement...</div>;
 
@@ -92,7 +105,7 @@ function Dashboard() {
     <div>
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-800">
-          Bienvenue sur {club?.name}
+          Bienvenue sur {club.name}
         </h2>
         <p className="text-gray-600">
           Résumé des activités de votre club
@@ -128,7 +141,7 @@ function Dashboard() {
           </div>
           <div className="p-4 border-t border-gray-200 bg-gray-50">
             <a
-              href="/events"
+              href="#"
               className="text-sm font-medium text-blue-600 hover:text-blue-800"
             >
               Voir tous les événements →
@@ -146,13 +159,16 @@ function Dashboard() {
                 key={interview.id}
                 student={interview.student_name}
                 date={new Date(interview.scheduled_at).toLocaleDateString('fr-FR')}
-                time={new Date(interview.scheduled_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                time={new Date(interview.scheduled_at).toLocaleTimeString('fr-FR', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
               />
             ))}
           </div>
           <div className="p-4 border-t border-gray-200 bg-gray-50">
             <a
-              href="/interviews"
+              href="#"
               className="text-sm font-medium text-blue-600 hover:text-blue-800"
             >
               Gérer les entretiens →
