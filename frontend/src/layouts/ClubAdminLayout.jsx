@@ -52,7 +52,7 @@ const ClubAdminLayout = () => {
     <div>
       <nav style={{ padding: '10px', background: '#f8f9fa', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <a href="/club-admin/dashboard" style={{ marginRight: '10px' }}>Dashboard</a>
+          <a href="/club-admin/dashboard" style={{ marginRight: '10px' }}> Dashboard </a>
           <a href="/club-admin/members" style={{ marginRight: '10px' }}>Members</a>
           <a href="/club-admin/interviews">Interviews</a>
         </div>

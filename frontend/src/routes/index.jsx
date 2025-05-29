@@ -10,6 +10,7 @@ import HomePage from '../components/auth/home';
 import Profile from '../components/users/Profil';
 import ClubApplication from '../components/student/clubApplication';
 import ClubsToInterview from '../components/student/clubsToInterVue';
+import Dashboard from '../components/ClubAdmin/pages/Dashboard';
 const ClubsPage = () => <h1>Liste des clubs disponibles</h1>;
 const EventsPage = () => <h1>Événements à venir</h1>;
 
@@ -52,7 +53,7 @@ export const Router = createBrowserRouter([
     path: '/club-admin',
     element: <ClubAdminLayout />,
     children: [
-      { path: 'dashboard', element: <ClubAdminDashboard /> },
+      { path: 'dashboard', element: <Dashboard /> },
       { path: 'members', element: <h1>Gestion des membres</h1> },
       { path: 'interviews', element: <h1>Entretiens</h1> },
     ],
