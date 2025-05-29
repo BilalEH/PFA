@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Calendar, Users, Bell, Activity } from 'lucide-react';
 
 function StatCard({ title, value, icon: Icon, color }) {
@@ -98,7 +99,7 @@ function Dashboard() {
     { title: 'Membres', value: stats.members, icon: Users, color: 'bg-blue-500' },
     { title: 'Entretiens en attente', value: stats.pendingInterviews, icon: Calendar, color: 'bg-orange-500' },
     { title: 'Événements à venir', value: stats.upcomingEvents, icon: Bell, color: 'bg-purple-500' },
-    { title: 'Projets actifs', value: stats.activeProjects, icon: Activity, color: 'bg-green-500' },
+
   ];
 
   return (
@@ -140,12 +141,9 @@ function Dashboard() {
             ))}
           </div>
           <div className="p-4 border-t border-gray-200 bg-gray-50">
-            <a
-              href="#"
-              className="text-sm font-medium text-blue-600 hover:text-blue-800"
-            >
-              Voir tous les événements →
-            </a>
+         
+            <Link to="/club-admin/Events" className="text-sm font-medium text-blue-600 hover:text-blue-800">Voir tous les événements →</Link>
+
           </div>
         </div>
 
@@ -167,12 +165,8 @@ function Dashboard() {
             ))}
           </div>
           <div className="p-4 border-t border-gray-200 bg-gray-50">
-            <a
-              href="#"
-              className="text-sm font-medium text-blue-600 hover:text-blue-800"
-            >
-              Gérer les entretiens →
-            </a>
+          
+              <Link to="/club-admin/interviews" className="text-sm font-medium text-blue-600 hover:text-blue-800" >Gérer les entretiens →</Link>
           </div>
         </div>
       </div>
