@@ -8,10 +8,9 @@ import Login from '../components/auth/Login';
 import Register from '../components/auth/Register';
 import HomePage from '../components/auth/home';
 import Profile from '../components/users/Profil';
-import Dashboard from '../ClubAdmin/pages/Dashboard';
+// import Dashboard from '../ClubAdmin/pages/Dashboard';
 import ClubApplication from '../components/student/clubApplication';
 import ClubsToInterview from '../components/student/clubsToInterVue';
-import Dashboard from '../components/ClubAdmin/pages/Dashboard';
 import ApplicationList from '../components/student/ApplicationList';
 import PublicEvents from '../components/student/publicEvents';
 import ClubInfo from '../ClubAdmin/pages/ClubInfo';
@@ -21,6 +20,7 @@ import { Layout } from 'lucide-react';
 import Sidebar from '../ClubAdmin/components/Sidebar';
 import Events from '../ClubAdmin/pages/Events';
 import Header from '../ClubAdmin/components/Header';
+import Dashboard from '../ClubAdmin/pages/Dashboard';
 const ClubsPage = () => <h1>Liste des clubs disponibles</h1>;
 const EventsPage = () => <h1>Événements à venir</h1>;
 
@@ -50,7 +50,6 @@ export const Router = createBrowserRouter([
     path: '/student',
     element: <StudentLayout />,
     children: [
-      { path: 'test', element: <ApiTestPage /> },
       { path: 'dashboard', element: <StudentDashboard /> },
       { path: 'applications', element: <ApplicationList /> },
       { path: 'events', element: <h1>Événements étudiants</h1> },
