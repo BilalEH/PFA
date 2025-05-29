@@ -49,6 +49,7 @@ export const Router = createBrowserRouter([
     path: '/student',
     element: <StudentLayout />,
     children: [
+      { path: 'test', element: <ApiTestPage /> },
       { path: 'dashboard', element: <StudentDashboard /> },
       { path: 'applications', element: <ApplicationList /> },
       { path: 'events', element: <h1>Événements étudiants</h1> },

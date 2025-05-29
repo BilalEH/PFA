@@ -15,7 +15,7 @@ class CreateUsersTable extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('user_type', ['student', 'club_admin', 'system_admin'])->default('student');
+            $table->enum('u ser_type', ['student', 'club_admin', 'system_admin'])->default('student');
             $table->string('student_id')->nullable();
             $table->string('profile_image')->nullable();
             $table->string('branch')->nullable(); // Changed from 'major' to match frontend

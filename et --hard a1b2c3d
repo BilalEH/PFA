@@ -1,0 +1,27 @@
+[33m26e4193[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m ahmed
+[33mbc5f6a0[m bilal
+[33mf82e03c[m controllers
+[33mbb0f639[m merge
+[33mb9b8c5f[m merge
+[33m1f25edc[m Merge branch 'main' of https://github.com/BilalEH/PFA
+[33me2446af[m fix errors and create profile and create new communication between front and back - new routing system
+[33m1365a24[m Merge branch 'main' of https://github.com/BilalEH/PFA
+[33mf198c63[m espace
+[33m2728a0e[m fix all errors of login logic with now db
+[33m51e2fc9[m fix all errors of login logic with now db
+[33m1a1d9ae[m Merge branch 'main' of https://github.com/BilalEH/PFA
+[33me1a8e6b[m  change authStyles.css
+[33mf3a5fd5[m Update DatabaseSeeder.php
+[33mc2bb2f5[m new version of models-migrations-seeds-db-enums-contollers
+[33mfaf5e63[m new version of models-migrations-seeds-db-enums-contollers
+[33mc0cf2d3[m layout
+[33m5f96b00[m models
+[33ma931d0c[m test
+[33mb3a58a1[m ajouter les fonction backend de login en page login
+[33md67cbf6[m ajouter les fonction backend de login en page login
+[33mcd29ec4[m change config file .env
+[33ma436fe0[m creer la liaison entre backend et frontend
+[33m15d4d04[m creer la liaison entre backend et frontend
+[33me906bc8[m login
+[33mc11836c[m the first commit for init projet
+[33m56a03ab[m Premier commit initial

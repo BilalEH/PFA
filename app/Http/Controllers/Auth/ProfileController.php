@@ -61,6 +61,7 @@ class ProfileController extends Controller
         if (!$user) {
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
+        $updated = $user->update($validated);
 
         $validated = $request->validate([
             'first_name' => 'sometimes|string|max:255',
