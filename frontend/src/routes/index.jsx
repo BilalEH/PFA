@@ -8,7 +8,6 @@ import Login from '../components/auth/Login';
 import Register from '../components/auth/Register';
 import HomePage from '../components/auth/home';
 import Profile from '../components/users/Profil';
-// import Dashboard from '../ClubAdmin/pages/Dashboard';
 import ClubApplication from '../components/student/clubApplication';
 import ClubsToInterview from '../components/student/clubsToInterVue';
 import ApplicationList from '../components/student/ApplicationList';
