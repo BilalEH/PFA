@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Users, Bell, Activity } from 'lucide-react';
+import { Calendar, Users, Bell } from 'lucide-react';
+import { CircularProgress, Box, Typography } from '@mui/material';
 
 function StatCard({ title, value, icon: Icon, color }) {
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-      <div className="flex items-center">
+    <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 transition-all hover:shadow-lg hover:-translate-y-1 h-full">
+      <div className="flex items-center h-full">
         <div className={`p-3 rounded-full ${color} mr-4`}>
           <Icon className="h-6 w-6 text-white" />
         </div>
@@ -63,29 +64,19 @@ function Dashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
-      // Simulate async data fetching
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setStats({
         members: 42,
         pendingInterviews: 3,
         upcomingEvents: 2,
-        activeProjects: 5,
       });
       setEvents([
         { id: 1, title: 'Hackathon Étudiant', start_date: new Date(), participants: 25 },
         { id: 2, title: 'Réunion mensuelle', start_date: new Date(), participants: 10 },
       ]);
       setInterviews([
-        {
-          id: 1,
-          student_name: 'Adam Elhadi',
-          scheduled_at: new Date(),
-        },
-        {
-          id: 2,
-          student_name: 'Lina Elhadi',
-          scheduled_at: new Date(),
-        },
+        { id: 1, student_name: 'Adam Elhadi', scheduled_at: new Date() },
+        { id: 2, student_name: 'Lina Elhadi', scheduled_at: new Date() },
       ]);
       setLoading(false);
     };
@@ -93,38 +84,47 @@ function Dashboard() {
     fetchData();
   }, []);
 
-  if (loading) return <div>Chargement...</div>;
+  if (loading) {
+    return (
+      <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" height="80vh" sx={{ gap: 2 }}>
+        <CircularProgress color="primary" thickness={4.5} size={50} />
+        <Typography variant="body1" color="text.secondary">
+          Chargement des informations du club...
+        </Typography>
+      </Box>
+    );
+  }
 
   const statCards = [
     { title: 'Membres', value: stats.members, icon: Users, color: 'bg-blue-500' },
     { title: 'Entretiens en attente', value: stats.pendingInterviews, icon: Calendar, color: 'bg-orange-500' },
     { title: 'Événements à venir', value: stats.upcomingEvents, icon: Bell, color: 'bg-purple-500' },
-
   ];
 
   return (
     <div>
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">
-          Bienvenue sur {club.name}
-        </h2>
-        <p className="text-gray-600">
-          Résumé des activités de votre club
-        </p>
+      <div className="mb-6 text-center">
+        <h2 className="text-2xl font-bold text-gray-800">Bienvenue sur {club.name}</h2>
+        <p className="text-gray-600">Résumé des activités de votre club</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {statCards.map((stat) => (
-          <StatCard
-            key={stat.title}
-            title={stat.title}
-            value={stat.value}
-            icon={stat.icon}
-            color={stat.color}
-          />
-        ))}
+      {/* Statistiques - Cartes modernisées et centrées */}
+      <div className="flex justify-center mb-8">
+        <div className="flex flex-wrap justify-center gap-6 max-w-6xl w-full">
+          {statCards.map((stat) => (
+            <div key={stat.title} className="flex-1 min-w-[260px] max-w-[320px]">
+              <StatCard
+                title={stat.title}
+                value={stat.value}
+                icon={stat.icon}
+                color={stat.color}
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
+      {/* Blocs Événements & Entretiens */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="p-4 border-b border-gray-200">
@@ -141,9 +141,9 @@ function Dashboard() {
             ))}
           </div>
           <div className="p-4 border-t border-gray-200 bg-gray-50">
-         
-            <Link to="/club-admin/Events" className="text-sm font-medium text-blue-600 hover:text-blue-800">Voir tous les événements →</Link>
-
+            <Link to="/club-admin/Events" className="text-sm font-medium text-blue-600 hover:text-blue-800">
+              Voir tous les événements →
+            </Link>
           </div>
         </div>
 
@@ -165,8 +165,9 @@ function Dashboard() {
             ))}
           </div>
           <div className="p-4 border-t border-gray-200 bg-gray-50">
-          
-              <Link to="/club-admin/interviews" className="text-sm font-medium text-blue-600 hover:text-blue-800" >Gérer les entretiens →</Link>
+            <Link to="/club-admin/interviews" className="text-sm font-medium text-blue-600 hover:text-blue-800">
+              Gérer les entretiens →
+            </Link>
           </div>
         </div>
       </div>
