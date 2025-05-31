@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Search,
   Calendar,
@@ -10,7 +10,15 @@ import {
   X
 } from 'lucide-react'
 
-// Component: One interview card
+import {
+  CircularProgress,
+  Box,
+  Typography,
+  Snackbar,
+  Alert
+} from '@mui/material'
+
+// Composant : Carte d’entretien
 function InterviewItem({ interview, onUpdateStatus }) {
   const statusColors = {
     pending: 'bg-yellow-100 text-yellow-800',
@@ -35,9 +43,7 @@ function InterviewItem({ interview, onUpdateStatus }) {
           </div>
         </div>
         <span
-          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-            statusColors[interview.status]
-          }`}
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[interview.status]}`}
         >
           {interview.status.charAt(0).toUpperCase() + interview.status.slice(1)}
         </span>
@@ -129,70 +135,82 @@ function InterviewItem({ interview, onUpdateStatus }) {
   )
 }
 
+// Composant principal Interviews
 function Interviews() {
-  // Removed context — dummy club name
   const club = { name: 'Example Club' }
 
   const [searchTerm, setSearchTerm] = useState('')
   const [filter, setFilter] = useState('all')
+  const [loading, setLoading] = useState(true)
+  const [interviews, setInterviews] = useState([])
 
-  // Mock data (replace with API call if needed)
-  const [interviews, setInterviews] = useState([
-    {
-      id: '1',
-      student_name: 'Maria Garcia',
-      student_email: 'maria.garcia@example.com',
-      status: 'pending',
-      application_id: 'app1'
-    },
-    {
-      id: '2',
-      student_name: 'James Wilson',
-      student_email: 'james.wilson@example.com',
-      status: 'pending',
-      application_id: 'app2'
-    },
-    {
-      id: '3',
-      student_name: 'Emma Chen',
-      student_email: 'emma.chen@example.com',
-      status: 'scheduled',
-      scheduled_at: '2025-05-15T14:00:00',
-      meeting_link: 'https://meet.google.com/abc-defg-hij',
-      application_id: 'app3'
-    },
-    {
-      id: '4',
-      student_name: 'Alex Rodriguez',
-      student_email: 'alex.rodriguez@example.com',
-      status: 'completed',
-      scheduled_at: '2025-05-01T10:30:00',
-      feedback:
-        'Great candidate with strong technical skills and team spirit.',
-      application_id: 'app4'
-    },
-    {
-      id: '5',
-      student_name: 'Olivia Johnson',
-      student_email: 'olivia.johnson@example.com',
-      status: 'canceled',
-      application_id: 'app5'
-    },
-    {
-      id: '6',
-      student_name: 'Ethan Patel',
-      student_email: 'ethan.patel@example.com',
-      status: 'missed',
-      scheduled_at: '2025-05-03T15:30:00',
-      application_id: 'app6'
-    }
-  ])
+  const [snackOpen, setSnackOpen] = useState(false)
+  const [snackMessage, setSnackMessage] = useState('')
+  const [snackSeverity, setSnackSeverity] = useState('success')
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setInterviews([
+        {
+          id: '1',
+          student_name: 'Maria Garcia',
+          student_email: 'maria.garcia@example.com',
+          status: 'pending',
+          application_id: 'app1'
+        },
+        {
+          id: '2',
+          student_name: 'James Wilson',
+          student_email: 'james.wilson@example.com',
+          status: 'pending',
+          application_id: 'app2'
+        },
+        {
+          id: '3',
+          student_name: 'Emma Chen',
+          student_email: 'emma.chen@example.com',
+          status: 'scheduled',
+          scheduled_at: '2025-05-15T14:00:00',
+          meeting_link: 'https://meet.google.com/abc-defg-hij',
+          application_id: 'app3'
+        },
+        {
+          id: '4',
+          student_name: 'Alex Rodriguez',
+          student_email: 'alex.rodriguez@example.com',
+          status: 'completed',
+          scheduled_at: '2025-05-01T10:30:00',
+          feedback: 'Great candidate with strong technical skills and team spirit.',
+          application_id: 'app4'
+        },
+        {
+          id: '5',
+          student_name: 'Olivia Johnson',
+          student_email: 'olivia.johnson@example.com',
+          status: 'canceled',
+          application_id: 'app5'
+        },
+        {
+          id: '6',
+          student_name: 'Ethan Patel',
+          student_email: 'ethan.patel@example.com',
+          status: 'missed',
+          scheduled_at: '2025-05-03T15:30:00',
+          application_id: 'app6'
+        }
+      ])
+      setLoading(false)
+    }, 1000)
+    return () => clearTimeout(timer)
+  }, [])
 
   const handleUpdateStatus = (id, status) => {
     setInterviews(
       interviews.map((iv) => (iv.id === id ? { ...iv, status } : iv))
     )
-    alert(`Interview status updated to ${status} for ID ${id}`)
+    setSnackMessage(`Status updated to "${status}" for interview ID ${id}`)
+    setSnackSeverity('success')
+    setSnackOpen(true)
   }
 
   const filteredInterviews = interviews.filter((iv) => {
@@ -202,6 +220,24 @@ function Interviews() {
     const matchesFilter = filter === 'all' || iv.status === filter
     return matchesName && matchesFilter
   })
+
+  if (loading) {
+    return (
+      <Box
+        display="flex"
+        flexDirection="column"
+        justifyContent="center"
+        alignItems="center"
+        height="80vh"
+        sx={{ gap: 2 }}
+      >
+        <CircularProgress color="primary" thickness={4.5} size={50} />
+        <Typography variant="body1" color="text.secondary">
+          Chargement des entretiens en cours...
+        </Typography>
+      </Box>
+    )
+  }
 
   return (
     <div>
@@ -271,6 +307,23 @@ function Interviews() {
           </div>
         )}
       </div>
+
+      {/* Snackbar de notification */}
+      <Snackbar
+        open={snackOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={() => setSnackOpen(false)}
+          severity={snackSeverity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackMessage}
+        </Alert>
+      </Snackbar>
     </div>
   )
 }

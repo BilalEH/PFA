@@ -1,108 +1,158 @@
-import React, { useEffect, useState } from 'react'
-import { MapPin, Edit } from 'lucide-react'
-import axios from 'axios'
+import React, { useEffect, useState } from 'react';
+import { Edit, MapPin } from 'lucide-react';
+import { axiosInstance } from '../../apiConfig/axios';
+import {
+  Box, Typography, CircularProgress, Avatar, Button, Card, CardContent, Stack, Divider, Chip
+} from '@mui/material';
+import { motion } from 'framer-motion';
 
 export default function ClubInfo({ clubId = 2 }) {
-  const [club, setClub] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [club, setClub] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchClub = async () => {
       try {
-        const response = await axios.get(`/api/clubs/${clubId}`)
-        setClub(response.data)
+        const response = await axiosInstance.get(`/api/clubs/${clubId}`);
+        setClub(response.data.data);
       } catch (error) {
-        console.error('Failed to fetch club:', error)
+        console.error('Failed to fetch club:', error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
+    fetchClub();
+  }, [clubId]);
 
-    fetchClub()
-  }, [clubId])
+  if (loading) {
+    return (
+      <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="80vh" gap={2}>
+        <CircularProgress color="primary" thickness={4.5} size={50} />
+        <Typography variant="body1" color="text.secondary">
+          Chargement des informations du club...
+        </Typography>
+      </Box>
+    );
+  }
 
-  if (loading) return <div>Loading club info...</div>
-  if (!club) return <div>Club not found.</div>
+  if (!club) return <Typography>Club not found.</Typography>;
 
   return (
-    <div className="space-y-6">
-      <div className="relative h-48 bg-gray-200 rounded-lg overflow-hidden">
-        <img
-          src={club.cover_image || 'https://via.placeholder.com/1200x300'}
-          alt="Club Banner"
-          className="object-cover w-full h-full"
-        />
-        <button className="absolute top-4 right-4 px-4 py-2 bg-blue-600 text-white rounded flex items-center space-x-1">
-          <Edit className="w-4 h-4" />
-          <span>Edit Information</span>
-        </button>
-      </div>
+    <Box component={motion.div} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} p={3}>
+      {/* Banner */}
+      <Box
+        sx={{
+          height: 200,
+          borderRadius: 3,
+          backgroundColor: '#e0e0e0',
+          backgroundImage: `url(${club.cover_image || 'https://via.placeholder.com/1200x300'})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          position: 'relative',
+          mb: 4,
+        }}
+      >
+        <Button
+          variant="contained"
+          startIcon={<Edit />}
+          sx={{ position: 'absolute', top: 16, right: 16, textTransform: 'none' }}
+        >
+          Edit Information
+        </Button>
+      </Box>
 
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Left column */}
-        <div className="flex-1 bg-white p-6 rounded-lg shadow-sm space-y-4">
-          <h2 className="text-2xl font-semibold">Club Information</h2>
-          <div className="flex items-center space-x-4">
-            <div className="w-24 h-24 bg-gray-300 rounded-lg overflow-hidden">
-              <img
+      <Stack direction={{ xs: 'column', lg: 'row' }} spacing={4}>
+        {/* Left section */}
+        <Card component={motion.div} elevation={3} sx={{ flex: 2 }} whileHover={{ scale: 1.01 }}>
+          <CardContent>
+            <Typography variant="h5" fontWeight="bold" gutterBottom>Club Information</Typography>
+
+            <Stack direction="row" spacing={3} alignItems="center" mb={3}>
+              <Avatar
                 src={club.logo || 'https://via.placeholder.com/96'}
                 alt="Club Logo"
-                className="object-cover w-full h-full"
+                sx={{ width: 72, height: 72, borderRadius: 2 }}
               />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold">{club.name}</h3>
-              <div className="flex items-center text-gray-600 space-x-1">
-                <MapPin className="w-4 h-4" />
-                <span>{club.location || 'No location provided'}</span>
-              </div>
-            </div>
-          </div>
+              <Box>
+                <Typography variant="h6" fontWeight="bold">{club.name}</Typography>
+                <Stack direction="row" spacing={1} alignItems="center" color="text.secondary">
+                  <MapPin fontSize="small" />
+                  <Typography>{club.location || 'No location provided'}</Typography>
+                </Stack>
+              </Box>
+            </Stack>
 
-          <div>
-            <h4 className="font-medium">About the Club</h4>
-            <p className="mt-1 text-gray-700">{club.description}</p>
-          </div>
+            <Divider sx={{ mb: 2 }} />
+            <Typography variant="subtitle1" fontWeight="medium">About the Club</Typography>
+            <Typography color="text.secondary" sx={{ mb: 2 }}>{club.description || 'No description available.'}</Typography>
 
-          <div>
-            <h4 className="font-medium">Club Rules</h4>
-            {club.rules ? (
-              <p className="mt-1 text-gray-700">{club.rules}</p>
+            <Typography variant="subtitle1" fontWeight="medium">Club Rules</Typography>
+            <Typography color="text.secondary">
+              {club.rules || <em style={{ color: '#9e9e9e' }}>No rules defined</em>}
+            </Typography>
+
+            <Divider sx={{ my: 3 }} />
+            <Typography variant="subtitle1" fontWeight="medium">Upcoming Events</Typography>
+            {club.events?.length > 0 ? (
+              <ul>
+                {club.events.map(event => (
+                  <li key={event.id}>
+                    <Typography>
+                      <strong>{event.title}</strong> — {new Date(event.start_date).toLocaleString()}
+                    </Typography>
+                  </li>
+                ))}
+              </ul>
             ) : (
-              <p className="mt-1 text-gray-400 italic">No rules defined</p>
+              <Typography color="text.secondary"><em>No events planned</em></Typography>
             )}
-          </div>
-        </div>
 
-        {/* Right column */}
-        <div className="w-full lg:w-1/3 bg-white p-6 rounded-lg shadow-sm space-y-4">
-          <h4 className="font-medium text-gray-700">Club Details</h4>
-          <dl className="space-y-2 text-gray-800">
-            <div>
-              <dt className="font-semibold">Club Name</dt>
-              <dd>{club.name}</dd>
-            </div>
-            <div>
-              <dt className="font-semibold">Founded</dt>
-              <dd>
-                {club.foundation_date
-                  ? new Date(club.foundation_date).toLocaleDateString()
-                  : 'N/A'}
-              </dd>
-            </div>
-            <div>
-              <dt className="font-semibold">Status</dt>
-              <dd>
-                <span className={`inline-block px-2 py-0.5 text-sm rounded ${
-                  club.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                }`}>
-                  {club.is_active ? 'Active' : 'Inactive'}
-                </span>
-              </dd>
-            </div>
-          </dl>
-        </div>
-      </div>
-    </div>
-  )
+            <Divider sx={{ my: 3 }} />
+            <Typography variant="subtitle1" fontWeight="medium">Interview Slots</Typography>
+            {club.interview_slots?.length > 0 ? (
+              <ul>
+                {club.interview_slots.map(slot => (
+                  <li key={slot.id}>
+                    <Typography>
+                      {new Date(slot.start_time).toLocaleString()} — {new Date(slot.end_time).toLocaleString()}
+                    </Typography>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <Typography color="text.secondary"><em>No interview slots available</em></Typography>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Right section */}
+        <Card elevation={3} component={motion.div} sx={{ flex: 1 }} whileHover={{ scale: 1.01 }}>
+          <CardContent>
+            <Typography variant="h6" fontWeight="medium" mb={2}>Club Details</Typography>
+            <Stack spacing={2}>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">Club Name</Typography>
+                <Typography variant="body1">{club.name}</Typography>
+              </Box>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">Founded</Typography>
+                <Typography variant="body1">
+                  {club.foundation_date ? new Date(club.foundation_date).toLocaleDateString() : 'N/A'}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">Status</Typography>
+                <Chip
+                  label={club.is_active ? 'Active' : 'Inactive'}
+                  color={club.is_active ? 'success' : 'error'}
+                  size="small"
+                  sx={{ fontWeight: 'bold' }}
+                />
+              </Box>
+            </Stack>
+          </CardContent>
+        </Card>
+      </Stack>
+    </Box>
+  );
 }

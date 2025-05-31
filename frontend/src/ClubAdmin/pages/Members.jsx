@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Search,
   Filter,
@@ -10,7 +10,19 @@ import {
   UserPlus
 } from 'lucide-react'
 
-// Replace context with mock data
+import {
+  TextField,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  Button,
+  Box,
+  Typography,
+  Stack,
+  CircularProgress
+} from '@mui/material'
+
 const mockUser = {
   id: '1',
   first_name: 'John',
@@ -127,6 +139,8 @@ function Members() {
 
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedRole, setSelectedRole] = useState(null)
+  const [isFormOpen, setIsFormOpen] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   const [members, setMembers] = useState([
     {
@@ -149,7 +163,6 @@ function Members() {
       profile_image:
         'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=300'
     }
-    // add more fake members if needed
   ])
 
   const canManageMembers = ['president', 'vice_president', 'admin'].includes(
@@ -163,6 +176,11 @@ function Members() {
     alert(`Role updated to ${newRole.replace('_', ' ')} for member ID ${id}`)
   }
 
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 1000)
+    return () => clearTimeout(timer)
+  }, [])
+
   const filteredMembers = members.filter((member) => {
     const fullName = `${member.first_name} ${member.last_name}`.toLowerCase()
     const matchesName = fullName.includes(searchTerm.toLowerCase())
@@ -170,18 +188,103 @@ function Members() {
     return matchesName && matchesRole
   })
 
+  if (loading) {
+    return (
+      <Box
+        display="flex"
+        flexDirection="column"
+        justifyContent="center"
+        alignItems="center"
+        height="80vh"
+        sx={{ gap: 2 }}
+      >
+        <CircularProgress color="primary" thickness={4.5} size={50} />
+        <Typography variant="body1" color="text.secondary">
+          Chargement des membres du club...
+        </Typography>
+      </Box>
+    )
+  }
+
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Club Members</h2>
         {canManageMembers && (
-          <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-            <UserPlus className="h-5 w-5 mr-2" />
+          <Button
+            variant="contained"
+            startIcon={<UserPlus className="h-5 w-5" />}
+            onClick={() => setIsFormOpen(true)}
+          >
             Add Member
-          </button>
+          </Button>
         )}
       </div>
 
+      {/* FORMULAIRE D’AJOUT */}
+      {isFormOpen && (
+        <Box
+          component="form"
+          onSubmit={(e) => {
+            e.preventDefault()
+            const newMember = {
+              id: (members.length + 1).toString(),
+              first_name: e.target.first_name.value,
+              last_name: e.target.last_name.value,
+              email: e.target.email.value,
+              role: e.target.role.value,
+              joined_at: new Date().toISOString().split('T')[0],
+              profile_image: ''
+            }
+            setMembers((prev) => [...prev, newMember])
+            setIsFormOpen(false)
+            e.target.reset()
+          }}
+          sx={{
+            p: 3,
+            mb: 4,
+            border: '1px solid #e0e0e0',
+            borderRadius: 2,
+            boxShadow: 1,
+            backgroundColor: '#fff'
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
+            Add New Member
+          </Typography>
+
+          <Stack spacing={2} direction={{ xs: 'column', sm: 'row' }} sx={{ mb: 2 }}>
+            <TextField name="first_name" label="First Name" fullWidth required />
+            <TextField name="last_name" label="Last Name" fullWidth required />
+          </Stack>
+
+          <Stack spacing={2} direction={{ xs: 'column', sm: 'row' }} sx={{ mb: 2 }}>
+            <TextField name="email" label="Email" type="email" fullWidth required />
+            <FormControl fullWidth required>
+              <InputLabel id="role-label">Role</InputLabel>
+              <Select name="role" labelId="role-label" label="Role" defaultValue="">
+                <MenuItem value="president">President</MenuItem>
+                <MenuItem value="vice_president">Vice President</MenuItem>
+                <MenuItem value="secretary">Secretary</MenuItem>
+                <MenuItem value="treasurer">Treasurer</MenuItem>
+                <MenuItem value="admin">Admin</MenuItem>
+                <MenuItem value="member">Member</MenuItem>
+              </Select>
+            </FormControl>
+          </Stack>
+
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+            <Button variant="outlined" onClick={() => setIsFormOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="contained">
+              Add Member
+            </Button>
+          </Box>
+        </Box>
+      )}
+
+      {/* FILTRES */}
       <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 mb-6">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
@@ -225,6 +328,7 @@ function Members() {
         </div>
       </div>
 
+      {/* AFFICHAGE DES MEMBRES */}
       <div className="grid grid-cols-1 gap-4">
         {filteredMembers.length > 0 ? (
           filteredMembers.map((member) => (
