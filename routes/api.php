@@ -19,22 +19,31 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 
 Route::apiResource('users', UserController::class);
 Route::get('feedbacks', [FeedbackController::class,"index"]);
-Route::apiResource('interviews', InterviewController::class);
-Route::apiResource('interview-slots', InterviewSlotController::class);
-Route::apiResource('notifications', NotificationController::class);
-Route::apiResource('clubs', ClubController::class);
 Route::get('/public-events', [EventController::class,'getpublicEvents']);
 
 
 Route::middleware('auth:sanctum')->group(function () {
+    // ----- interviews
+    Route::apiResource('interviews', InterviewController::class);
+    Route::get('/getMyClubsEvents', [ProfileController::class, 'getMyClubsEvents']);
+    // ----- Clubs
+    Route::apiResource('clubs', ClubController::class);
     Route::get('club/{club}', [ClubController::class,'getinterViewSlotsList']);
+    Route::get('/userIsInClub', [UserController::class, 'ClubTest']);
+    Route::get('/userClubs', [ProfileController::class, 'getUserClubs']);
+    // ----- Applications
+    Route::apiResource('interview-slots', InterviewSlotController::class);
     Route::get('interview/application/{interview}', [ClubController::class, 'getApplication']);
     Route::post('interview/application/{interview}', [ClubController::class, 'saveApplication']);
-    Route::patch('interview', [ClubController::class, 'test']);
-    Route::get('/userIsInClub', [UserController::class, 'ClubTest']);
+    //profiles
     Route::get('/profile', [ProfileController::class, 'getProfile']);
     Route::get('/userApplications', [ProfileController::class, 'getUserAplcations']);
     Route::patch('/profile', [ProfileController::class, 'updateProfile']);
+    // ----- Notifications
+    Route::get('/user/notifications', [NotificationController::class, 'index']);
+    Route::get('/user/notifications/not-read-number', [NotificationController::class, 'getNotificationsOfUserNotReadNumber']);
+    Route::patch('/user/notifications/{id}', [NotificationController::class, 'markAsRead']);
+
 });
 
 

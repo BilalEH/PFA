@@ -26,6 +26,11 @@
   z-index: 100;
 }
 
+.css-1mnrjii-MuiListItem-root ,.css-1oqvr6y-MuiListItem-root{
+  width: auto !important;
+}
+
+
 .header-content {
   display: flex;
   justify-content: space-between;

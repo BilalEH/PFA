@@ -14,10 +14,19 @@ import {
   Divider,
   Tooltip,
   IconButton,
+  useTheme,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  useMediaQuery,
+  Slide,
+  Zoom,
+  alpha,
 } from "@mui/material";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
-import { axiosInstance } from "../../apiConfig/axios";
+import { axiosInstance } from "../../apiConfig/axios"; // Ensure this path is correct
 import EventIcon from "@mui/icons-material/Event";
 import PlaceIcon from "@mui/icons-material/Place";
 import GroupIcon from "@mui/icons-material/Group";
@@ -30,21 +39,43 @@ import InfoIcon from "@mui/icons-material/Info";
 import RuleIcon from "@mui/icons-material/Gavel";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import CloseIcon from "@mui/icons-material/Close";
+import ReadMoreIcon from '@mui/icons-material/ReadMore';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+
+// Transition for the Dialog
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 
 function PublicEvents() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [comment, setComment] = useState("");
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedEventIdForComment, setSelectedEventIdForComment] = useState(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const eventsPerPage = 3;
+
+  const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
+  const [eventForDetails, setEventForDetails] = useState(null);
+
+  // --- NEW STATE FOR FEEDBACK PAGINATION ---
+  const [currentFeedbackPage, setCurrentFeedbackPage] = useState(0);
+  const feedbackPerPage = 3;
 
   useEffect(() => {
     const fetchEvents = async () => {
+      setLoading(true); // Ensure loading is true at the start of fetch
       try {
         const res = await axiosInstance.get("/api/public-events");
-        setEvents(res.data);
+        setEvents(Array.isArray(res.data) ? res.data : []); // Ensure events is an array
       } catch (err) {
+        console.error("Fetch events error:", err);
         toast.error("Erreur lors de la récupération des événements publics.");
+        setEvents([]); // Set to empty array on error
       } finally {
         setLoading(false);
       }
@@ -55,10 +86,28 @@ function PublicEvents() {
   const handleCommentChange = (e) => setComment(e.target.value);
 
   const handleCommentSubmit = async (eventId) => {
+    if (!comment.trim()) {
+      toast.error("Le commentaire ne peut pas être vide.");
+      return;
+    }
     // TODO: Implement comment submit logic (API call)
-    toast.success("Commentaire envoyé !");
+    // For example:
+    // try {
+    //   await axiosInstance.post(`/api/events/${eventId}/comments`, { comment });
+    //   toast.success("Commentaire envoyé !");
+    //   setComment("");
+    //   setSelectedEventIdForComment(null);
+    //   // Optionally, re-fetch event details to show the new comment
+    //   if (eventForDetails && eventForDetails.id === eventId) {
+    //     const res = await axiosInstance.get(`/api/public-events/${eventId}`);
+    //     setEventForDetails(res.data);
+    //   }
+    // } catch (error) {
+    //   toast.error("Erreur lors de l'envoi du commentaire.");
+    // }
+    toast.success("Commentaire envoyé (simulation) !");
     setComment("");
-    setSelectedEvent(null);
+    setSelectedEventIdForComment(null);
   };
 
   const handleJoin = (eventId) => {
@@ -67,396 +116,309 @@ function PublicEvents() {
   };
 
   const handlePrev = () => {
-    setCurrentIndex((prev) => (prev === 0 ? events.length - 1 : prev - 1));
+    setCurrentPage((prev) =>
+      prev === 0 ? Math.ceil(events.length / eventsPerPage) - 1 : prev - 1
+    );
   };
 
   const handleNext = () => {
-    setCurrentIndex((prev) => (prev === events.length - 1 ? 0 : prev + 1));
+    setCurrentPage((prev) =>
+      prev === Math.ceil(events.length / eventsPerPage) - 1 ? 0 : prev + 1
+    );
   };
+
+  const handleOpenDetailsDialog = (event) => {
+    setEventForDetails(event);
+    setCurrentFeedbackPage(0); // Reset feedback page when opening new dialog
+    setOpenDetailsDialog(true);
+  };
+
+  const handleCloseDetailsDialog = () => {
+    setOpenDetailsDialog(false);
+    setTimeout(() => setEventForDetails(null), theme.transitions.duration.leavingScreen);
+  };
+
+  // --- HANDLERS FOR FEEDBACK PAGINATION ---
+  const handleNextFeedback = () => {
+    setCurrentFeedbackPage((prev) => prev + 1);
+  };
+  const handlePrevFeedback = () => {
+    setCurrentFeedbackPage((prev) => Math.max(0, prev - 1));
+  };
+
+
+  const currentEvents = Array.isArray(events) ? events.slice(
+    currentPage * eventsPerPage,
+    currentPage * eventsPerPage + eventsPerPage
+  ) : [];
+
+  const displayedEvents = [...currentEvents];
+  // Only pad if there are some events on the page but less than eventsPerPage
+  if (displayedEvents.length > 0 && displayedEvents.length < eventsPerPage) {
+    while (displayedEvents.length < eventsPerPage) {
+      displayedEvents.push(null);
+    }
+  }
+
 
   if (loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: 'center', minHeight: 'calc(100vh - 120px)' }}>
         <CircularProgress size={48} />
       </Box>
     );
   }
 
+  const eventCardStyle = {
+    p: { xs: 2, sm: 3 },
+    borderRadius: 3, // Slightly softer radius
+    minHeight: { xs: 'auto', md: 480 }, // Responsive minHeight
+    height: '100%', // For Grid alignItems="stretch"
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    border: `1px solid ${theme.palette.divider}`,
+    boxShadow: theme.shadows[2], // Softer shadow initially
+    background: theme.palette.background.paper,
+    transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
+    '&:hover': {
+      transform: 'translateY(-4px)', // Subtle lift
+      boxShadow: theme.shadows[6],
+    }
+  };
+
+  const renderEventContent = (event, isDialog = false) => {
+    if (!event) return null;
+
+    const club = event.club || {};
+    const users = event.users || [];
+    const feedback = Array.isArray(event.feedback) ? event.feedback : [];
+
+    // Feedback pagination logic for dialog
+    const totalFeedbackPages = Math.ceil(feedback.length / feedbackPerPage);
+    const displayedFeedbackItems = isDialog 
+        ? feedback.slice(0, (currentFeedbackPage + 1) * feedbackPerPage) 
+        : feedback.slice(0, feedbackPerPage); // Show first 3 on card if needed, or remove from card
+
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        {/* Top section of the card/dialog */}
+        <Box>
+            <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+            <Avatar src={club.logo} alt={club.name} sx={{ width: 56, height: 56, bgcolor: "primary.main", border: `2px solid ${theme.palette.background.paper}` }} />
+            <Box sx={{overflow: 'hidden'}}>
+                <Typography variant={isDialog ? "h5" : "h6"} fontWeight={700} color="text.primary" noWrap title={event.title}>{event.title}</Typography>
+                <Typography variant="body2" color="text.secondary" noWrap title={`Organisé par : ${club.name}`}>Organisé par : {club.name}</Typography>
+            </Box>
+            {!isDialog && (
+                <Chip icon={<GroupIcon />} label={`${event.users_count || 0}`} color="primary" sx={{ ml: "auto", fontWeight: 600, px: 1, display: {xs: 'none', sm: 'flex'} }} title={`${event.users_count || 0} participants`}/>
+            )}
+            </Stack>
+
+            {isDialog && club.description && (
+                <Box sx={{ mb: 2, p:1.5, background: alpha(theme.palette.primary.light, 0.15), borderRadius: 1.5, border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`}}>
+                    <Stack direction="row" spacing={1} alignItems="flex-start">
+                        <InfoIcon color="primary" fontSize="small" sx={{mt: 0.5}}/>
+                        <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                            <strong>À propos du club:</strong> {club.description}
+                        </Typography>
+                    </Stack>
+                    {club.rules && (
+                    <Stack direction="row" spacing={1} alignItems="flex-start" sx={{ mt: 1 }}>
+                        <RuleIcon color="warning" fontSize="small" sx={{mt: 0.5}}/>
+                        <Typography variant="body2" color="text.secondary" fontStyle="italic">
+                        <strong>Règles:</strong> {club.rules}
+                        </Typography>
+                    </Stack>
+                    )}
+                </Box>
+            )}
+
+            {event.cover_image && (
+            <Box sx={{ my: 2, textAlign: "center", borderRadius: 2, overflow: 'hidden', border: `1px solid ${theme.palette.divider}` }}>
+                <img src={event.cover_image.startsWith("http") ? event.cover_image : `/uploads/${event.cover_image}`} alt={event.title} style={{ display: 'block', width: "100%", height: isDialog ? 250 : 150, objectFit: "cover" }} />
+            </Box>
+            )}
+
+            <Box sx={{ background: alpha(theme.palette.action.selected, 0.05), borderRadius: 2, p: 2, mb: 2, flexGrow: isDialog ? 0 : 1 }}>
+            <Typography variant="body1" color="text.primary" sx={{ 
+                maxHeight: isDialog ? 'none' : 70, // Limit height on card
+                overflowY: isDialog ? 'auto' : 'hidden', // Scroll on dialog if needed, hidden on card
+                WebkitLineClamp: isDialog ? 'none' : 3, // For card view
+                WebkitBoxOrient: 'vertical', // For card view
+                display: '-webkit-box', // For card view
+                textOverflow: 'ellipsis', // For card view
+                whiteSpace: 'normal', // Allow wrapping
+            }}>
+                {event.description}
+            </Typography>
+            </Box>
+
+            <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', gap: 1 }}>
+                <Chip icon={<EventIcon />} label={`Début: ${new Date(event.start_date).toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" })}`} color="success" variant="outlined" size="small"/>
+                <Chip icon={<CalendarMonthIcon />} label={`Fin: ${new Date(event.end_date).toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" })}`} color="default" variant="outlined" size="small"/>
+                <Chip icon={<PlaceIcon />} label={event.location} color="info" variant="outlined" size="small"/>
+                {event.meeting_link && <Chip icon={<LinkIcon />} label="Lien Réunion" color="secondary" variant="outlined" component="a" href={event.meeting_link} target="_blank" rel="noopener noreferrer" clickable size="small"/>}
+            </Stack>
+        </Box>
+        
+        {/* Bottom section, pushes to bottom if isDialog is true */}
+        <Box sx={{ mt: isDialog ? 'auto' : 0 }}> 
+            {isDialog && (
+                <>
+                <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', gap: 1 }}>
+                    <Chip label={`Max Participants: ${event.max_participants || "∞"}`} color="default" size="small" variant="outlined"/>
+                    <Chip label={event.is_public ? "Public" : "Privé"} color={event.is_public ? "success" : "warning"} size="small" variant="outlined"/>
+                    <Chip label={event.requires_registration ? "Inscription requise" : "Libre"} color={event.requires_registration ? "primary" : "default"} size="small" variant="outlined"/>
+                </Stack>
+                <Divider sx={{ my: 2 }} />
+                <Box sx={{ mb: 2 }}>
+                    <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}><GroupIcon sx={{ fontSize: 18, mr: 1, color: "primary.main" }} />Participants ({event.users_count || 0})</Typography>
+                    <Stack direction="row" spacing={0.5} sx={{ flexWrap: "wrap" }}>
+                        {users.length > 0 ? (
+                            users.map((user) => (
+                            <Tooltip key={user.id} title={`${user.first_name} ${user.last_name}`} arrow>
+                                <Avatar src={user.profile_image} alt={`${user.first_name} ${user.last_name}`} sx={{ width: 32, height: 32, bgcolor: alpha(theme.palette.primary.light, 0.5), border: `1px solid ${theme.palette.divider}`, m: 0.25 }}/>
+                            </Tooltip>
+                            ))
+                        ) : (<Typography variant="body2" color="text.secondary">Aucun participant pour le moment.</Typography>)}
+                    </Stack>
+                </Box>
+                <Divider sx={{ my: 2 }} />
+                <Box sx={{ mb: 2 }}>
+                    <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}><CommentIcon sx={{ fontSize: 18, mr: 1, color: "primary.main" }} />Feedbacks ({feedback.length})</Typography>
+                    {feedback.length > 0 ? (
+                        <Stack spacing={1.5}>
+                        {displayedFeedbackItems.map((fb) => (
+                            <Paper key={fb.id} elevation={0} sx={{ display: "flex", alignItems: "center", background: alpha(theme.palette.grey[100], 0.5), borderRadius: 2, p: 1.5, border: `1px solid ${theme.palette.divider}`}}>
+                                <Avatar src={fb.profileImage} alt={fb.nameId} sx={{ width: 32, height: 32, mr: 1.5, bgcolor: alpha(theme.palette.primary.light, 0.3) }}/>
+                                <Box sx={{ flex: 1 }}><Typography variant="body2" fontWeight={600}>{fb.nameId}</Typography><Typography variant="caption" color="text.secondary">{fb.comment}</Typography></Box>
+                                <Chip icon={<StarRateIcon />} label={fb.rating} color="warning" size="small" sx={{ ml: 1, bgcolor: alpha(theme.palette.warning.light, 0.2) }}/>
+                            </Paper>
+                        ))}
+                        {/* Feedback Pagination Buttons */}
+                        {feedback.length > feedbackPerPage && (
+                            <Stack direction="row" justifyContent="center" spacing={1} sx={{mt: 1}}>
+                                {currentFeedbackPage > 0 && (
+                                    <Button size="small" onClick={handlePrevFeedback} startIcon={<ExpandLessIcon/>}>Précédent</Button>
+                                )}
+                                { (currentFeedbackPage + 1) * feedbackPerPage < feedback.length && (
+                                    <Button size="small" onClick={handleNextFeedback} endIcon={<ExpandMoreIcon/>}>Voir plus</Button>
+                                )}
+                            </Stack>
+                        )}
+                        </Stack>
+                    ) : (<Typography variant="body2" color="text.secondary">Aucun feedback pour cet événement.</Typography>)}
+                </Box>
+                </>
+            )}
+        </Box>
+      </Box>
+    );
+  }
+
+
   return (
-    <Container maxWidth="md" sx={{ mt: 6, mb: 6 }}>
-      <Typography
-        variant="h4"
-        fontWeight={700}
-        align="center"
-        gutterBottom
-        component={motion.div}
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
+    <Container maxWidth="lg" sx={{ mt: {xs: 3, sm:6}, mb: 6 }}>
+      <Typography variant="h4" fontWeight={700} align="center" gutterBottom component={motion.div} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} color="text.primary">
         Événements Publics
       </Typography>
+
+      {events.length === 0 && !loading && (
+         <Typography align="center" color="text.secondary" sx={{mt: 5, fontStyle: 'italic'}}>Aucun événement public disponible pour le moment.</Typography>
+      )}
+
       {events.length > 0 && (
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-          <IconButton
-            onClick={handlePrev}
-            sx={{
-              position: "absolute",
-              left: { xs: 0, sm: -60 },
-              zIndex: 2,
-              bgcolor: "#fff",
-              border: "1px solid #e3e8ee",
-              "&:hover": { bgcolor: "#e3e8ee" },
-              display: { xs: "none", sm: "flex" }
-            }}
-            aria-label="Précédent"
-          >
-            <ArrowBackIosNewIcon />
+        <Box sx={{ position: 'relative', mt: 4 }}>
+          <IconButton onClick={handlePrev} sx={{ position: "absolute", left: { xs: -15, sm: -40, md: -60 }, top: "50%", transform: "translateY(-50%)", zIndex: 2, bgcolor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}`, "&:hover": { bgcolor: theme.palette.action.hover }, boxShadow: theme.shadows[2] }} aria-label="Précédent">
+            <ArrowBackIosNewIcon fontSize="small"/>
           </IconButton>
-          <Grid container justifyContent="center">
-            <Grid item xs={12}>
-              <Paper
-                elevation={4}
-                sx={{
-                  p: 3,
-                  borderRadius: 4,
-                  background: "#f9fbfd",
-                  minHeight: 480,
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
-                  border: "1px solid #e3e8ee",
-                  boxShadow: "0 4px 24px rgba(25,118,210,0.07)",
-                  maxWidth: 600,
-                  mx: "auto",
-                }}
-                component={motion.div}
-                key={events[currentIndex].id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-              >
-                {/* Club & Event Info */}
-                <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
-                  <Avatar
-                    src={events[currentIndex].club?.logo}
-                    alt={events[currentIndex].club?.name}
-                    sx={{ width: 56, height: 56, bgcolor: "primary.main", border: "2px solid #fff" }}
-                  />
-                  <Box>
-                    <Typography variant="h6" fontWeight={700}>
-                      {events[currentIndex].title}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Organisé par : {events[currentIndex].club?.name}
-                    </Typography>
-                  </Box>
-                  <Chip
-                    icon={<GroupIcon />}
-                    label={`${events[currentIndex].users_count} participants`}
-                    color="primary"
-                    sx={{ ml: "auto", fontWeight: 600, px: 1.5 }}
-                  />
-                </Stack>
-                {/* Club Description & Rules */}
-                <Box sx={{ mb: 2 }}>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <InfoIcon color="info" fontSize="small" />
-                    <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                      {events[currentIndex].club?.description}
-                    </Typography>
-                  </Stack>
-                  {events[currentIndex].club?.rules && (
-                    <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
-                      <RuleIcon color="warning" fontSize="small" />
-                      <Typography variant="body2" color="text.secondary" fontStyle="italic">
-                        {events[currentIndex].club.rules}
-                      </Typography>
-                    </Stack>
-                  )}
-                </Box>
-                {/* Event Cover Image */}
-                {events[currentIndex].cover_image && (
-                  <Box sx={{ mb: 2, textAlign: "center" }}>
-                    <img
-                      src={
-                        events[currentIndex].cover_image.startsWith("http")
-                          ? events[currentIndex].cover_image
-                          : `/uploads/${events[currentIndex].cover_image}`
-                      }
-                      alt={events[currentIndex].title}
-                      style={{
-                        maxWidth: "100%",
-                        maxHeight: 180,
-                        borderRadius: 8,
-                        objectFit: "cover",
-                        border: "1px solid #e3e8ee",
-                      }}
-                    />
-                  </Box>
+          <IconButton onClick={handleNext} sx={{ position: "absolute", right: { xs: -15, sm: -40, md: -60 }, top: "50%", transform: "translateY(-50%)", zIndex: 2, bgcolor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}`, "&:hover": { bgcolor: theme.palette.action.hover }, boxShadow: theme.shadows[2] }} aria-label="Suivant">
+            <ArrowForwardIosIcon fontSize="small"/>
+          </IconButton>
+
+          <Grid container spacing={isMobile ? 2 : 4} justifyContent="center" alignItems="stretch"> {/* alignItems="stretch" for equal height cards */}
+            {displayedEvents.map((event, index) => (
+              <Grid item xs={12} sm={6} md={4} key={event ? event.id : `empty-${index}-${currentPage}`} sx={{ display: 'flex', justifyContent: 'center', transform: { md: index === 1 ? 'scale(1.03)' : 'scale(0.97)' }, zIndex: { md: index === 1 ? 1 : 0 }, transition: 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)', my: { xs: 1, md: 0 } }}>
+                {event ? (
+                  <Paper elevation={index === 1 ? 6 : 3} sx={eventCardStyle} component={motion.div} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: index * 0.05 }}>
+                    {renderEventContent(event, false)}
+                    <Box sx={{ mt: 'auto', pt: 2 }}>
+                      <Divider sx={{ mb: 1.5 }} />
+                       <Button fullWidth variant="outlined" color="primary" onClick={() => handleOpenDetailsDialog(event)} startIcon={<ReadMoreIcon/>} sx={{mb:1, fontWeight: 500, textTransform: 'none', borderRadius: 1.5}}>
+                        Plus de détails
+                      </Button>
+                      <Button variant="contained" color="primary" fullWidth sx={{ fontWeight: 600, textTransform: 'none', borderRadius: 1.5 }} onClick={() => handleJoin(event.id)} startIcon={<GroupIcon />}>
+                        Rejoindre l'événement
+                      </Button>
+                    </Box>
+                  </Paper>
+                ) : (
+                  // Render a visually hidden box to maintain layout structure
+                  <Box sx={{ ...eventCardStyle, opacity: 0, pointerEvents: 'none', visibility: 'hidden', border: 'none', boxShadow: 'none' }} />
                 )}
-                {/* Event Description */}
-                <Box
-                  sx={{
-                    background: "#f7fafd",
-                    borderRadius: 2,
-                    p: 2,
-                    mb: 2,
-                    minHeight: 60,
-                    border: "1px solid #e3e8ee",
-                  }}
-                >
-                  <Typography variant="body1">{events[currentIndex].description}</Typography>
-                </Box>
-                {/* Event Details */}
-                <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-                  <Chip
-                    icon={<EventIcon />}
-                    label={new Date(events[currentIndex].start_date).toLocaleString("fr-FR", {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                    })}
-                    color="success"
-                    variant="outlined"
-                    sx={{ fontWeight: 500 }}
-                  />
-                  <Chip
-                    icon={<CalendarMonthIcon />}
-                    label={
-                      "Fin : " +
-                      new Date(events[currentIndex].end_date).toLocaleString("fr-FR", {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })
-                    }
-                    color="default"
-                    variant="outlined"
-                    sx={{ fontWeight: 500 }}
-                  />
-                  <Chip
-                    icon={<PlaceIcon />}
-                    label={events[currentIndex].location}
-                    color="info"
-                    variant="outlined"
-                    sx={{ fontWeight: 500 }}
-                  />
-                  {events[currentIndex].meeting_link && (
-                    <Chip
-                      icon={<LinkIcon />}
-                      label="Lien"
-                      color="secondary"
-                      variant="outlined"
-                      component="a"
-                      href={events[currentIndex].meeting_link}
-                      target="_blank"
-                      clickable
-                      sx={{ fontWeight: 500 }}
-                    />
-                  )}
-                </Stack>
-                {/* Max Participants, Registration, Public */}
-                <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-                  <Chip
-                    label={`Max: ${events[currentIndex].max_participants || "∞"}`}
-                    color="default"
-                    size="small"
-                    variant="outlined"
-                  />
-                  <Chip
-                    label={events[currentIndex].is_public ? "Public" : "Privé"}
-                    color={events[currentIndex].is_public ? "success" : "warning"}
-                    size="small"
-                    variant="outlined"
-                  />
-                  <Chip
-                    label={events[currentIndex].requires_registration ? "Inscription requise" : "Libre"}
-                    color={events[currentIndex].requires_registration ? "primary" : "default"}
-                    size="small"
-                    variant="outlined"
-                  />
-                </Stack>
-                <Divider sx={{ my: 2 }} />
-                {/* Users List */}
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
-                    <GroupIcon sx={{ fontSize: 18, mr: 1, color: "#1976d2" }} />
-                    Participants
-                  </Typography>
-                  <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
-                    {events[currentIndex].users && events[currentIndex].users.length > 0 ? (
-                      events[currentIndex].users.map((user) => (
-                        <Tooltip
-                          key={user.id}
-                          title={`${user.first_name} ${user.last_name}`}
-                          arrow
-                        >
-                          <Avatar
-                            src={user.profile_image}
-                            alt={`${user.first_name} ${user.last_name}`}
-                            sx={{
-                              width: 32,
-                              height: 32,
-                              bgcolor: "#e3f2fd",
-                              border: "1px solid #e3e8ee",
-                              mr: 0.5,
-                            }}
-                          />
-                        </Tooltip>
-                      ))
-                    ) : (
-                      <Typography variant="body2" color="text.secondary">
-                        Aucun participant pour le moment.
-                      </Typography>
-                    )}
-                  </Stack>
-                </Box>
-                <Divider sx={{ my: 2 }} />
-                {/* Feedbacks */}
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
-                    <CommentIcon sx={{ fontSize: 18, mr: 1, color: "#1976d2" }} />
-                    Feedbacks
-                  </Typography>
-                  {events[currentIndex].feedback && events[currentIndex].feedback.length > 0 ? (
-                    <Stack spacing={1}>
-                      {events[currentIndex].feedback.map((fb) => (
-                        <Paper
-                          key={fb.id}
-                          elevation={0}
-                          sx={{
-                            display: "flex",
-                            alignItems: "center",
-                            background: "#f4f7fa",
-                            borderRadius: 2,
-                            p: 1.2,
-                            border: "1px solid #e3e8ee",
-                          }}
-                        >
-                          <Avatar
-                            src={fb.profileImage}
-                            alt={fb.nameId}
-                            sx={{ width: 32, height: 32, mr: 1, bgcolor: "#e3f2fd" }}
-                          />
-                          <Box sx={{ flex: 1 }}>
-                            <Typography variant="body2" fontWeight={600} color="primary.dark">
-                              {fb.nameId}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {fb.comment}
-                            </Typography>
-                          </Box>
-                          <Chip
-                            icon={<StarRateIcon sx={{ color: "#fbc02d" }} />}
-                            label={fb.rating}
-                            color="warning"
-                            size="small"
-                            sx={{ ml: 1, fontWeight: 600, bgcolor: "#fffbe6" }}
-                          />
-                        </Paper>
-                      ))}
-                    </Stack>
-                  ) : (
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                      Aucun feedback pour cet événement.
-                    </Typography>
-                  )}
-                </Box>
-                <Divider sx={{ my: 2 }} />
-                {/* Comment Form & Join Button */}
-                <Box sx={{ mt: 1 }}>
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      setSelectedEvent(events[currentIndex].id);
-                      handleCommentSubmit(events[currentIndex].id);
-                    }}
-                    style={{ display: "flex", alignItems: "center", gap: 10 }}
-                  >
-                    <TextField
-                      label="Ajouter un commentaire"
-                      variant="outlined"
-                      size="small"
-                      value={selectedEvent === events[currentIndex].id ? comment : ""}
-                      onChange={handleCommentChange}
-                      sx={{
-                        flex: 1,
-                        background: "#f7fafd",
-                        borderRadius: 2,
-                        "& .MuiOutlinedInput-root": { borderRadius: 2 },
-                      }}
-                    />
-                    <Tooltip title="Envoyer le commentaire">
-                      <span>
-                        <Button
-                          type="submit"
-                          variant="contained"
-                          color="primary"
-                          size="small"
-                          sx={{ fontWeight: 600, px: 3, minWidth: 0 }}
-                          endIcon={<SendIcon />}
-                        >
-                          Commenter
-                        </Button>
-                      </span>
-                    </Tooltip>
-                  </form>
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    sx={{
-                      mt: 2,
-                      width: "100%",
-                      fontWeight: 600,
-                      borderRadius: 2,
-                      bgcolor: "#f7fafd",
-                      border: "1.5px solid #1976d2",
-                      color: "#1976d2",
-                      "&:hover": {
-                        bgcolor: "#e3f2fd",
-                        borderColor: "#1565c0",
-                      },
-                    }}
-                    onClick={() => handleJoin(events[currentIndex].id)}
-                    startIcon={<GroupIcon />}
-                  >
-                    Rejoindre l'événement
-                  </Button>
-                </Box>
-              </Paper>
-            </Grid>
+              </Grid>
+            ))}
           </Grid>
-          <IconButton
-            onClick={handleNext}
-            sx={{
-              position: "absolute",
-              right: { xs: 0, sm: -60 },
-              zIndex: 2,
-              bgcolor: "#fff",
-              border: "1px solid #e3e8ee",
-              "&:hover": { bgcolor: "#e3e8ee" },
-              display: { xs: "none", sm: "flex" }
-            }}
-            aria-label="Suivant"
-          >
-            <ArrowForwardIosIcon />
-          </IconButton>
         </Box>
       )}
-      {/* Dots navigation for mobile */}
-      <Stack direction="row" justifyContent="center" spacing={1} sx={{ mt: 3 }}>
-        {events.map((_, i) => (
-          <Box
-            key={i}
-            sx={{
-              width: 10,
-              height: 10,
-              borderRadius: "50%",
-              bgcolor: i === currentIndex ? "primary.main" : "#e3e8ee",
-              transition: "all 0.3s",
-            }}
-          />
-        ))}
-      </Stack>
+
+      {events.length > eventsPerPage && (
+        <Stack direction="row" justifyContent="center" spacing={0.5} sx={{ mt: 4 }}>
+          {Array.from({ length: Math.ceil(events.length / eventsPerPage) }).map((_, i) => (
+            <IconButton key={i} size="small" onClick={() => setCurrentPage(i)} sx={{ p: 0.25, color: i === currentPage ? 'primary.main' : 'action.disabled' }}>
+              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'currentColor', transition: 'background-color 0.3s' }}/>
+            </IconButton>
+          ))}
+        </Stack>
+      )}
+
+      {eventForDetails && (
+        <Dialog
+          fullScreen={isMobile}
+          open={openDetailsDialog}
+          onClose={handleCloseDetailsDialog}
+          TransitionComponent={isMobile ? Transition : Zoom}
+          aria-labelledby="event-details-dialog-title"
+          PaperProps={{ sx: { borderRadius: isMobile ? 0 : 3, maxHeight: isMobile ? '100dvh' : 'calc(100dvh - 64px)', width: isMobile ? '100%' : 'md' } }}
+          maxWidth="md"
+        >
+          <DialogTitle id="event-details-dialog-title" sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', py:1.5, px:2 }}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+                <Typography variant="h6" component="div">{eventForDetails.title}</Typography>
+                <IconButton edge="end" color="inherit" onClick={handleCloseDetailsDialog} aria-label="close"> <CloseIcon /> </IconButton>
+            </Stack>
+          </DialogTitle>
+          <DialogContent dividers sx={{ p: {xs: 1.5, sm: 2, md: 3}, '&::-webkit-scrollbar': {width: '8px'}, '&::-webkit-scrollbar-thumb': {backgroundColor: theme.palette.action.selected, borderRadius: '4px'} }}>
+            {renderEventContent(eventForDetails, true)}
+            <Divider sx={{ my: 2 }} />
+            <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>Laisser un commentaire</Typography>
+            <form onSubmit={(e) => { e.preventDefault(); handleCommentSubmit(eventForDetails.id); }} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                <TextField
+                    label="Votre commentaire"
+                    variant="outlined"
+                    size="small"
+                    value={selectedEventIdForComment === eventForDetails.id ? comment : ""}
+                    onChange={handleCommentChange}
+                    onClick={() => setSelectedEventIdForComment(eventForDetails.id)}
+                    fullWidth
+                    multiline
+                    rows={isMobile ? 2 : 3}
+                    sx={{ background: alpha(theme.palette.action.hover, 0.5), borderRadius: 1 }}
+                />
+                <Button type="submit" variant="contained" color="primary" size="medium" endIcon={<SendIcon />} sx={{height: 'fit-content', mt: isMobile ? 1 : 0, whiteSpace: 'nowrap'}}>
+                    Envoyer
+                </Button>
+            </form>
+          </DialogContent>
+          <DialogActions sx={{ p: {xs: 1, sm: 2}, borderTop: `1px solid ${theme.palette.divider}` }}>
+            <Button onClick={handleCloseDetailsDialog} color="inherit">Fermer</Button>
+            <Button onClick={() => {handleJoin(eventForDetails.id); handleCloseDetailsDialog();}} variant="contained" color="primary" startIcon={<GroupIcon />}>
+              Rejoindre
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
     </Container>
   );
 }

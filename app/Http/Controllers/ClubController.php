@@ -10,6 +10,7 @@ use App\Models\InterviewSlot;
 use App\Models\Application;
 use Illuminate\Support\Facades\Auth;
 use DateTime;
+use App\Models\Notification;
 class ClubController extends Controller
 {
     public function index()
@@ -112,6 +113,16 @@ class ClubController extends Controller
         $application->motivation = $request->motivation;
         $application->club_id = $interview->club_id;
         $application->save();
+
+        //add notification
+        $notification = [
+            'title' => 'Nouvelle candidature',
+            'message' => 'Vous avez une nouvelle candidature pour l\'entretien de club ' . $interview->club->name,
+            'type' => 'application',
+            'link' => '/interview/application/' . $interview->id,
+            'user_id' => $userId,
+        ];
+        Notification::create($notification);
 
         return response()->json([
             'message' => 'Application submitted successfully.',

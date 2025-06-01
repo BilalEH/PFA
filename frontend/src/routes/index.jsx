@@ -12,11 +12,17 @@ import ClubApplication from '../components/student/clubApplication';
 import ClubsToInterview from '../components/student/clubsToInterVue';
 import ApplicationList from '../components/student/ApplicationList';
 import PublicEvents from '../components/student/publicEvents';
+import { Notifications } from '../components/student/Notifications';
+import { MyClubsList } from '../components/student/myClubsList';
+import ClubEventsPage from '../components/student/MyClubsEnvents';
+import DashboardStudent from '../components/student/MainDashbord';
+
+
+
 const ClubsPage = () => <h1>Liste des clubs disponibles</h1>;
 const EventsPage = () => <h1>Événements à venir</h1>;
 
 // Pages protégées
-const StudentDashboard = () => <h1>Espace étudiant</h1>;
 const ClubAdminDashboard = () => <h1>Espace administrateur de club</h1>;
 const SystemAdminDashboard = () => <h1>Espace administrateur système</h1>;
 
@@ -41,13 +47,15 @@ export const Router = createBrowserRouter([
     path: '/student',
     element: <StudentLayout />,
     children: [
-      { path: 'dashboard', element: <StudentDashboard /> },
+      { path: 'dashboard', element: <DashboardStudent /> },
       { path: 'applications', element: <ApplicationList /> },
-      { path: 'events', element: <h1>Événements étudiants</h1> },
+      { path: 'events', element: <ClubEventsPage /> },
       { path: 'public-events', element: <PublicEvents /> },
       { path: 'clubs', element: <ClubsToInterview/> },
       { path: 'profile', element: <Profile /> },
       { path: 'apply/:InterviewId', element: <ClubApplication /> },
+      { path: 'notifications', element: <Notifications /> },
+      { path: 'club-dashboard', element: <MyClubsList /> },
     ],
   },
   {

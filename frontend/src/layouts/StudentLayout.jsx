@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Link as RouterLink, Navigate, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
-  AppBar, Toolbar, Typography, IconButton, Drawer, List, ListItem, ListItemIcon, ListItemText,
-  CssBaseline, Box, useMediaQuery, Avatar, Menu, MenuItem, Divider, Badge, Tooltip, Paper,
-  Stack, useTheme, styled, alpha
+  AppBar,
+  Toolbar, IconButton, Drawer, List, ListItem, ListItemIcon, ListItemText,
+  CssBaseline, Box, useMediaQuery, Avatar, Menu, MenuItem, Divider, Badge
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -18,28 +18,29 @@ import {
   ChevronRight as ChevronRightIcon,
   Brightness4 as DarkModeIcon,
   Brightness7 as LightModeIcon,
-  Settings as SettingsIcon
+  Settings as SettingsIcon // Kept for potential future use
 } from '@mui/icons-material';
 import { motion, AnimatePresence } from 'framer-motion';
-import { axiosInstance } from '../apiConfig/axios';
-import LoadingScreen from '../components/ui/LoadingScreen';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { axiosInstance } from '../apiConfig/axios'; // Actual import
+import LoadingScreen from '../components/ui/LoadingScreen'; // Actual import
+import { createTheme, ThemeProvider, styled, alpha } from '@mui/material/styles';
 
-const drawerWidth = 230;
+const drawerWidth = 250;
 const collapsedDrawerWidth = 60;
+const appBarHeight = '64px'; // Standard AppBar height
 
 // Color definitions from your palette
 const colors = {
-  primary100: '#2e8b57',
-  primary200: '#61bc84',
-  primary300: '#c6ffe6',
-  accent100: '#61bc84',
-  accent200: '#005d2d',
-  text100: '#000000',
-  text200: '#2c2c2c',
-  bg100: '#effff6',
-  bg200: '#e5f5ec',
-  bg300: '#bcccc3',
+  primary100: '#2e8b57', // Sea Green
+  primary200: '#61bc84', // Lighter Sea Green
+  primary300: '#c6ffe6', // Very Light Mint Green
+  accent100: '#61bc84',  // Same as primary200 for accent
+  accent200: '#005d2d',  // Darker Sea Green
+  text100: '#000000',    // Black
+  text200: '#2c2c2c',    // Dark Gray
+  bg100: '#effff6',      // Very Light Mint background
+  bg200: '#e5f5ec',      // Light Mint background
+  bg300: '#bcccc3',      // Light Grayish Mint for dividers
 };
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
@@ -76,14 +77,13 @@ const getDesignTokens = (mode) => ({
     mode,
     ...(mode === 'light'
       ? {
-          // Light mode palette
           primary: {
             main: colors.primary100,
-            light: colors.primary300,
+            light: colors.primary200,
             dark: colors.accent200,
           },
           secondary: {
-            main: colors.primary200,
+            main: colors.accent100,
             light: colors.primary300,
           },
           background: {
@@ -94,10 +94,9 @@ const getDesignTokens = (mode) => ({
             primary: colors.text100,
             secondary: colors.text200,
           },
-          divider: colors.bg300,
+          divider: alpha(colors.primary100, 0.2),
         }
-      : {
-          // Dark mode palette
+      : { // Dark mode palette
           primary: {
             main: colors.primary200,
             light: colors.primary300,
@@ -108,77 +107,51 @@ const getDesignTokens = (mode) => ({
             light: colors.primary300,
           },
           background: {
-            default: '#121212',
-            paper: '#1E1E1E',
+            default: '#1E1E1E',
+            paper: '#2C2C2C',
           },
           text: {
-            primary: '#ffffff',
-            secondary: 'rgba(255, 255, 255, 0.7)',
+            primary: '#E0E0E0',
+            secondary: alpha('#FFFFFF', 0.7),
           },
-          divider: 'rgba(255, 255, 255, 0.12)',
+          divider: alpha('#FFFFFF', 0.12),
         }),
   },
   typography: {
-    fontFamily: [
-      'Inter',
-      '-apple-system',
-      'BlinkMacSystemFont',
-      '"Segoe UI"',
-      'Roboto',
-      '"Helvetica Neue"',
-      'Arial',
-      'sans-serif',
-    ].join(','),
+    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+    fontWeightRegular: 400,
+    fontWeightMedium: 500,
+    fontWeightBold: 700,
   },
   components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          textTransform: 'none',
-          borderRadius: '8px',
-        },
-      },
-    },
-    MuiMenu: {
-      styleOverrides: {
-        paper: {
-          borderRadius: '12px',
-          marginTop: '8px',
-          minWidth: '200px',
-          boxShadow: '0 4px 20px 0 rgba(0,0,0,0.12)',
-        },
-      },
-    },
-    MuiMenuItem: {
-      styleOverrides: {
-        root: {
-          '&.Mui-selected': {
-            backgroundColor: alpha(colors.primary200, 0.16),
-          },
-          '&.Mui-selected:hover': {
-            backgroundColor: alpha(colors.primary200, 0.24),
-          },
-        },
-      },
-    },
     MuiListItem: {
       styleOverrides: {
-        root: {
+        root: ({ theme }) => ({
           borderRadius: '8px',
           margin: '4px 8px',
           '&.Mui-selected': {
-            backgroundColor: `${colors.primary100} !important`,
-            color: 'white',
+            backgroundColor: mode === 'light' ? `${colors.primary300} !important` : `${colors.accent200} !important`,
+            color: mode === 'light' ? colors.primary100 : colors.primary200,
             '& .MuiListItemIcon-root': {
-              color: 'white',
+              color: colors.primary100,
             },
+            '&:hover': {
+              backgroundColor: mode === 'light' ? `${alpha(colors.primary300, 0.9)} !important` : `${alpha(colors.accent200, 0.9)} !important`,
+            }
           },
           '&:hover': {
-            backgroundColor: alpha(colors.primary100, 0.08),
+            backgroundColor: alpha(mode === 'light' ? colors.primary100 : colors.primary200, 0.08),
           },
-        },
+        }),
       },
     },
+    MuiDrawer: {
+        styleOverrides: {
+            paper: {
+                transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1) 0ms !important',
+            }
+        }
+    }
   },
 });
 
@@ -190,13 +163,30 @@ const StudentLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isInClub, setIsInClub] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
-  const [notifications] = useState(3);
-  const [darkMode, setDarkMode] = useState(false);
-  const [drawerCollapsed, setDrawerCollapsed] = useState(false);
+  const [notificationsCount, setNotificationsCount] = useState(0);
+
+  const [darkMode, setDarkMode] = useState(() => {
+    try {
+      const storedMode = localStorage.getItem('darkMode');
+      return storedMode ? JSON.parse(storedMode) : false;
+    } catch (error) {
+      console.error("Erreur lors de la lecture de darkMode depuis localStorage", error);
+      return false;
+    }
+  });
+
+  const [drawerCollapsed, setDrawerCollapsed] = useState(true);
   const isMobile = useMediaQuery('(max-width: 900px)');
 
-  // Create theme based on dark mode
-  const theme = createTheme(getDesignTokens(darkMode ? 'dark' : 'light'));
+  const theme = useMemo(() => createTheme(getDesignTokens(darkMode ? 'dark' : 'light')), [darkMode]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('darkMode', JSON.stringify(darkMode));
+    } catch (error) {
+      console.error("Erreur lors de l'enregistrement de darkMode dans localStorage", error);
+    }
+  }, [darkMode]);
 
   const checkIsInClub = async () => {
     try {
@@ -205,24 +195,26 @@ const StudentLayout = () => {
         setIsInClub(response.data.count > 0);
       }
     } catch (error) {
-      console.error('Club check failed:', error.message);
+      console.error('La vérification du club a échoué:', error.message);
     }
   };
 
   useEffect(() => {
     const checkAuth = async () => {
+      setLoading(true);
       try {
         const response = await axiosInstance.get('/api/user');
         setUser(response.data);
         await checkIsInClub();
       } catch (err) {
-        console.error('Auth check failed:', err);
+        console.error("La vérification de l'authentification a échoué:", err);
         setUser(null);
       } finally {
         setLoading(false);
       }
     };
     checkAuth();
+    GetNumberOfNotifications();
   }, []);
 
   const handleLogout = async () => {
@@ -236,9 +228,10 @@ const StudentLayout = () => {
           'X-XSRF-TOKEN': token ? decodeURIComponent(token) : '',
         },
       });
-      navigate('/login');
+      setUser(null);
+      navigate('/login', { replace: true });
     } catch (err) {
-      console.error('Logout error:', err);
+      console.error('Erreur de déconnexion:', err);
     }
   };
 
@@ -255,84 +248,67 @@ const StudentLayout = () => {
   };
 
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
+    setDarkMode(prevMode => !prevMode);
   };
 
   const toggleDrawerCollapse = () => {
     setDrawerCollapsed(!drawerCollapsed);
   };
 
-  if (loading) return <LoadingScreen />;
+  const GetNumberOfNotifications = async() => {
+      setLoading(true);
+      try {
+        const response = await axiosInstance.get('/api/user/notifications/not-read-number');
+        console.log('Nombre de notifications:', response.data.count);
+        setNotificationsCount(response.data.not_read_number);
+      } catch (err) {
+        console.error('Erreur de comptage des notifications:', err);
+        setNotificationsCount(0);
+      } finally {
+        setLoading(false);
+      }
+    };
 
+  if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/login" replace />;
 
   if (user.user_type !== 'student') {
     switch (user.user_type) {
-      case 'club_admin':
-        return <Navigate to="/club-admin/dashboard" replace />;
-      case 'system_admin':
-        return <Navigate to="/system-admin/dashboard" replace />;
-      default:
-        return <Navigate to="/login" replace />;
+      case 'club_admin': return <Navigate to="/club-admin/dashboard" replace />;
+      case 'system_admin': return <Navigate to="/system-admin/dashboard" replace />;
+      default: return <Navigate to="/login" replace />;
     }
   }
 
   const drawerItems = !isInClub
     ? [
-        { text: 'Dashboard', icon: <DashboardIcon />, link: '/student/dashboard' },
         { text: 'Clubs', icon: <SchoolIcon />, link: '/student/clubs' },
-        { text: 'Applications', icon: <GroupIcon />, link: '/student/applications' },
-        { text: 'Public Events', icon: <EventIcon />, link: '/student/public-events' },
-        { text: 'Profile', icon: <PersonIcon />, link: '/student/profile' },
-        { text: 'Notifications', icon: <NotificationsIcon />, link: '/student/notifications', badge: notifications },
+        { text: 'Candidatures', icon: <GroupIcon />, link: '/student/applications' },
+        { text: 'Événements Publics', icon: <EventIcon />, link: '/student/public-events' },
       ]
     : [
-        { text: 'Dashboard', icon: <DashboardIcon />, link: '/student/dashboard' },
-        { text: 'Club Dashboard', icon: <SchoolIcon />, link: '/student/club-dashboard' },
-        { text: 'Events', icon: <EventIcon />, link: '/student/events' },
-        { text: 'Members', icon: <GroupIcon />, link: '/student/members' },
-        { text: 'Profile', icon: <PersonIcon />, link: '/student/profile' },
-        { text: 'Notifications', icon: <NotificationsIcon />, link: '/student/notifications', badge: notifications },
+        { text: 'Tableau de Bord', icon: <DashboardIcon />, link: '/student/dashboard' },
+        { text: 'Tableau de Bord du Club', icon: <SchoolIcon />, link: '/student/club-dashboard' },
+        { text: 'Événements', icon: <EventIcon />, link: '/student/events' },
+        { text: 'Membres', icon: <GroupIcon />, link: '/student/members' },
       ];
 
-  const drawer = (
-    <Box sx={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
+  const drawerContent = (
+    <Box sx={{
+      display: 'flex',
+      flexDirection: 'column',
       height: '100%',
       background: theme.palette.background.paper,
+      overflow: 'hidden',
     }}>
-      <Toolbar sx={{ 
-        display: 'flex', 
-        alignItems: 'center',
-        justifyContent: drawerCollapsed ? 'center' : 'space-between',
-        minHeight: '64px',
-        px: 2,
-      }}>
-        {!drawerCollapsed && (
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Typography variant="h6" noWrap>
-              Student Portal
-            </Typography>
-          </motion.div>
-        )}
-        <IconButton onClick={toggleDrawerCollapse}>
-          {drawerCollapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
-        </IconButton>
-      </Toolbar>
-      
-      <Divider />
-      
-      <List sx={{ flexGrow: 1, overflowY: 'auto', py: 1,overflowX: 'hidden' }}>
+
+      <List sx={{ flexGrow: 1, overflowY: 'auto', py: 1, overflowX: 'hidden', mt: isMobile ? 0 : appBarHeight }}>
         {drawerItems.map((item) => (
           <motion.div
             key={item.text}
-            whileHover={{ scale: 1.02 }}
+            whileHover={{ scale: drawerCollapsed ? 1 : 1.02 }}
             whileTap={{ scale: 0.98 }}
+            style={{color: location.pathname.startsWith(item.link) ?  '#005d2d': 'inherit',}}
           >
             <ListItem
               button
@@ -344,11 +320,14 @@ const StudentLayout = () => {
                 px: drawerCollapsed ? 0 : 2,
                 minHeight: '48px',
               }}
+              title={drawerCollapsed ? item.text : ""}
             >
-              <ListItemIcon sx={{ 
-                minWidth: drawerCollapsed ? 'auto' : '56px',
+              <ListItemIcon sx={{
+                minWidth: drawerCollapsed ? 'auto' : '40px',
                 justifyContent: 'center',
-                color: location.pathname.startsWith(item.link) ? '#2E8B57' : 'inherit',
+                color: 'inherit',
+                transition: 'color 0.2s',
+                mr: drawerCollapsed ? 0 : 1,
               }}>
                 {item.badge ? (
                   <Badge badgeContent={item.badge} color="error">
@@ -360,14 +339,18 @@ const StudentLayout = () => {
               </ListItemIcon>
               {!drawerCollapsed && (
                 <motion.div
-                  initial={{ opacity: 0, x: -20 }}
+                  initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.2 }}
+                  exit={{ opacity: 0, x: -10}}
+                  transition={{ duration: 0.2, delay: 0.05 }}
+                  style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}
                 >
-                  <ListItemText 
-                    primary={item.text} 
+                  <ListItemText
+                    primary={item.text}
                     primaryTypographyProps={{
-                      fontWeight: location.pathname.startsWith(item.link) ? '600' : '400'
+                      fontWeight: location.pathname.startsWith(item.link) ? 600 : 400,
+                      fontSize: '0.9rem',
+                      sx: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }
                     }}
                   />
                 </motion.div>
@@ -376,28 +359,175 @@ const StudentLayout = () => {
           </motion.div>
         ))}
       </List>
-      
-      <Divider />
-      
-      <Box sx={{ p: 2 }}>
-        <Stack direction={drawerCollapsed ? 'column' : 'row'} spacing={1} alignItems="center">
-          <Tooltip title={darkMode ? 'Light mode' : 'Dark mode'}>
-            <IconButton onClick={toggleDarkMode} size="small">
-              {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
-            </IconButton>
-          </Tooltip>
+
+      <Box sx={{ mt: 'auto', borderTop: `1px solid ${theme.palette.divider}` }}>
+        {/* Notifications */}
+        <ListItem
+          button
+          component={RouterLink}
+          to="/student/notifications"
+          selected={location.pathname.startsWith('/student/notifications')}
+          sx={{
+            justifyContent: drawerCollapsed ? 'center' : 'flex-start',
+            px: drawerCollapsed ? 0 : 2,
+            minHeight: '48px',
+          }}
+            title={drawerCollapsed ? "Notifications" : ""}
+        >
+          <ListItemIcon sx={{
+            minWidth: drawerCollapsed ? 'auto' : '40px',
+            justifyContent: 'center',
+            color: 'inherit',
+            mr: drawerCollapsed ? 0 : 1,
+          }}>
+            <Badge badgeContent={notificationsCount} color="error">
+              <NotificationsIcon />
+            </Badge>
+          </ListItemIcon>
           {!drawerCollapsed && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.1 }}
+             <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10}}
+                transition={{ duration: 0.2, delay: 0.05 }}
+                style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}
             >
-              <Typography variant="caption">
-                {darkMode ? 'Light mode' : 'Dark mode'}
-              </Typography>
+                <ListItemText
+                primary="Notifications"
+                primaryTypographyProps={{
+                    fontWeight: location.pathname.startsWith('/student/notifications') ? 600 : 400,
+                    fontSize: '0.9rem',
+                    sx: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'}
+                }}
+                />
             </motion.div>
           )}
-        </Stack>
+        </ListItem>
+
+        {/* Profile */}
+        <ListItem
+          button
+          onClick={handleMenuOpen}
+          sx={{
+            justifyContent: drawerCollapsed ? 'center' : 'flex-start',
+            px: drawerCollapsed ? 0 : 2,
+            minHeight: '48px',
+          }}
+          title={drawerCollapsed ? "Profil" : ""}
+        >
+          <ListItemIcon sx={{
+            minWidth: drawerCollapsed ? 'auto' : '40px',
+            justifyContent: 'center',
+            mr: drawerCollapsed ? 0 : 1,
+            color: 'inherit',
+          }}>
+            <StyledBadge
+              overlap="circular"
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              variant="dot"
+            >
+              <Avatar
+                alt={user?.first_name || 'Utilisateur'}
+                src={user?.profile_image || "/static/images/avatar/1.jpg"}
+                sx={{
+                  width: 28,
+                  height: 28,
+                  fontSize: '0.8rem',
+                  bgcolor: theme.palette.primary.main,
+                  color: theme.palette.getContrastText(theme.palette.primary.main),
+                }}
+              />
+            </StyledBadge>
+          </ListItemIcon>
+          {!drawerCollapsed && (
+            <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10}}
+                transition={{ duration: 0.2, delay: 0.05 }}
+                style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}
+            >
+                <ListItemText
+                    primary={user?.first_name || "Profil"}
+                    primaryTypographyProps={{ fontSize: '0.9rem', sx: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'} }}
+                />
+            </motion.div>
+          )}
+        </ListItem>
+
+        {/* Theme toggle */}
+        <ListItem
+          button
+          onClick={toggleDarkMode}
+          sx={{
+            justifyContent: drawerCollapsed ? 'center' : 'flex-start',
+            px: drawerCollapsed ? 0 : 2,
+            minHeight: '48px',
+          }}
+          title={drawerCollapsed ? (darkMode ? 'Mode Clair' : 'Mode Sombre') : ""}
+        >
+          <ListItemIcon sx={{
+            minWidth: drawerCollapsed ? 'auto' : '40px',
+            justifyContent: 'center',
+            mr: drawerCollapsed ? 0 : 1,
+            color: 'inherit',
+          }}>
+            {darkMode ? <LightModeIcon /> : <DarkModeIcon />}
+          </ListItemIcon>
+          {!drawerCollapsed && (
+             <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10}}
+                transition={{ duration: 0.2, delay: 0.05 }}
+                style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}
+            >
+                <ListItemText
+                    primary={darkMode ? 'Mode Clair' : 'Mode Sombre'}
+                    primaryTypographyProps={{ fontSize: '0.9rem', sx: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'} }}
+                />
+            </motion.div>
+          )}
+        </ListItem>
+
+        {!isMobile && (
+          <>
+            <Divider />
+            <ListItem
+              button
+              onClick={toggleDrawerCollapse}
+              sx={{
+                justifyContent: drawerCollapsed ? 'center' : 'flex-start',
+                px: drawerCollapsed ? 0 : 2,
+                minHeight: '48px',
+              }}
+              title={drawerCollapsed ? "Étendre" : "Réduire"}
+            >
+              <ListItemIcon sx={{
+                minWidth: drawerCollapsed ? 'auto' : '40px',
+                justifyContent: 'center',
+                mr: drawerCollapsed ? 0 : 1,
+                color: 'inherit',
+              }}>
+                {drawerCollapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+              </ListItemIcon>
+              {!drawerCollapsed && (
+                  <motion.div
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -10}}
+                      transition={{ duration: 0.2, delay: 0.05 }}
+                      style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '100%' }}
+                  >
+                      <ListItemText
+                          primary="Réduire"
+                          primaryTypographyProps={{ fontSize: '0.9rem', sx: { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'} }}
+                      />
+                  </motion.div>
+              )}
+            </ListItem>
+          </>
+        )}
       </Box>
     </Box>
   );
@@ -406,72 +536,87 @@ const StudentLayout = () => {
     <ThemeProvider theme={theme}>
       <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
         <CssBaseline />
-        <AppBar 
-          position="fixed"
-          sx={{ 
-            zIndex: theme.zIndex.drawer + 1,
-            background: `linear-gradient(135deg, ${colors.primary100} 0%, ${'#575352'} 100%)`,
-            boxShadow: 'none',
-            width: isMobile ? '100%' : `calc(100% - ${drawerCollapsed ? collapsedDrawerWidth : drawerWidth}px)`,
-            transition: theme.transitions.create(['width', 'margin'], {
-              easing: theme.transitions.easing.sharp,
-              duration: theme.transitions.duration.leavingScreen,
-            }),
-          }}
-        >
-          <Toolbar>
-            {isMobile && (
+
+        {/* Mobile-only AppBar */}
+        {isMobile && (
+          <AppBar
+            position="fixed" // Keeps AppBar at the top
+            sx={{
+              backgroundColor: theme.palette.background.paper,
+              color: theme.palette.text.primary,
+              boxShadow: theme.shadows[2] // Subtle shadow
+            }}
+          >
+            <Toolbar sx={{ minHeight: appBarHeight }}>
               <IconButton
                 color="inherit"
+                aria-label="ouvrir le tiroir" // French: open drawer
                 edge="start"
                 onClick={toggleDrawer}
                 sx={{ mr: 2 }}
               >
                 <MenuIcon />
               </IconButton>
-            )}
-            
-            <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, fontWeight: 600 }}>
-              {location.pathname.split('/')[2]?.replace(/-/g, ' ') || 'Dashboard'}
-            </Typography>
-            
-            <Stack direction="row" spacing={1} alignItems="center">
-              <Tooltip title="Notifications">
-                <IconButton color="inherit">
-                  <Badge badgeContent={notifications} color="error">
-                    <NotificationsIcon />
-                  </Badge>
-                </IconButton>
-              </Tooltip>
-              
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <IconButton onClick={handleMenuOpen}>
-                  <StyledBadge
-                    overlap="circular"
-                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                    variant="dot"
-                  >
-                    <Avatar
-                      alt={user.first_name}
-                      src={user.profile_image}
-                      sx={{
-                        bgcolor: colors.primary300,
-                        color: colors.primary100,
-                        width: 40,
-                        height: 40,
-                      }}
-                    />
-                  </StyledBadge>
-                </IconButton>
-              </motion.div>
-            </Stack>
-          </Toolbar>
-        </AppBar>
+              {/* You can add a title or other AppBar content here if needed */}
+              {/* <Typography variant="h6" noWrap component="div">Titre de l'application</Typography> */}
+            </Toolbar>
+          </AppBar>
+        )}
 
-        {/* User Menu */}
+        <Drawer
+          variant={isMobile ? "temporary" : "permanent"}
+          open={isMobile ? mobileOpen : true}
+          onClose={isMobile ? toggleDrawer : undefined}
+          ModalProps={{ keepMounted: true }}
+          sx={{
+            width: isMobile ? drawerWidth : (drawerCollapsed ? collapsedDrawerWidth : drawerWidth),
+            flexShrink: 0,
+            '& .MuiDrawer-paper': {
+              width: isMobile ? drawerWidth : (drawerCollapsed ? collapsedDrawerWidth : drawerWidth),
+              boxSizing: 'border-box',
+              borderRight: isMobile ? `1px solid ${theme.palette.divider}` : 'none',
+              overflowX: 'hidden',
+              transition: theme.transitions.create('width', {
+                easing: theme.transitions.easing.sharp,
+                duration: theme.transitions.duration.enteringScreen,
+              }),
+            },
+          }}
+        >
+          {drawerContent}
+        </Drawer>
+
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            width: `calc(100% - ${isMobile ? 0 : (drawerCollapsed ? collapsedDrawerWidth : drawerWidth)}px)`,
+            marginLeft: isMobile ? 0 : (drawerCollapsed ? `${collapsedDrawerWidth}px` : `${drawerWidth}px`),
+            transition: theme.transitions.create(['width', 'margin-left'], {
+              easing: theme.transitions.easing.sharp,
+              duration: theme.transitions.duration.enteringScreen,
+            }),
+            overflowY: 'auto',
+            height: '100vh',
+            paddingTop: isMobile ? appBarHeight : 0, 
+          }}
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.25 }}
+              style={{ height: '100%'}}
+            >
+              <Box sx={{ p: { xs: 2, sm: 3 }, height: '100%' }}>
+                <Outlet />
+              </Box>
+            </motion.div>
+          </AnimatePresence>
+        </Box>
+
         <Menu
           anchorEl={anchorEl}
           open={Boolean(anchorEl)}
@@ -483,6 +628,8 @@ const StudentLayout = () => {
             sx: {
               overflow: 'visible',
               mt: 1.5,
+              minWidth: 180,
+              filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.15))',
               '&:before': {
                 content: '""',
                 display: 'block',
@@ -506,98 +653,26 @@ const StudentLayout = () => {
             <ListItemIcon>
               <PersonIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>Profile</ListItemText>
+            <ListItemText primaryTypographyProps={{fontSize: '0.9rem'}}>Profil</ListItemText>
           </MenuItem>
-          <MenuItem
+          {/* <MenuItem
             component={RouterLink}
-            to="/student/settings"
+            to="/student/settings" // Example, if you add settings
             onClick={handleMenuClose}
           >
             <ListItemIcon>
               <SettingsIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>Settings</ListItemText>
-          </MenuItem>
-          <Divider />
-          <MenuItem onClick={() => { handleLogout(); handleMenuClose(); }}>
+            <ListItemText primaryTypographyProps={{fontSize: '0.9rem'}}>Paramètres</ListItemText>
+          </MenuItem> */}
+          <Divider sx={{ my: 0.5 }}/>
+          <MenuItem onClick={() => { handleMenuClose(); handleLogout(); }}>
             <ListItemIcon>
-              <LogoutIcon fontSize="small" />
+              <LogoutIcon fontSize="small" sx={{color: theme.palette.error.main}}/>
             </ListItemIcon>
-            <ListItemText>Logout</ListItemText>
+            <ListItemText primaryTypographyProps={{fontSize: '0.9rem', color: theme.palette.error.main}}>Déconnexion</ListItemText>
           </MenuItem>
         </Menu>
-
-        {/* Sidebar Drawer */}
-        {isMobile ? (
-          <Drawer
-            variant="temporary"
-            open={mobileOpen}
-            onClose={toggleDrawer}
-            ModalProps={{ keepMounted: true }}
-            sx={{
-              '& .MuiDrawer-paper': {
-                width: drawerWidth,
-              },
-            }}
-          >
-            {drawer}
-          </Drawer>
-        ) : (
-          <Drawer
-            variant="permanent"
-            sx={{
-              width: drawerCollapsed ? collapsedDrawerWidth : drawerWidth,
-              flexShrink: 0,
-              '& .MuiDrawer-paper': {
-                width: drawerCollapsed ? collapsedDrawerWidth : drawerWidth,
-                boxSizing: 'border-box',
-                borderRight: 'none',
-                boxShadow: theme.shadows[1],
-              },
-            }}
-            open
-          >
-            {drawer}
-          </Drawer>
-        )}
-
-        {/* Main Content */}
-        <Box
-          component="main"
-          sx={{
-            flexGrow: 1,
-            // p: 3,
-            width: isMobile ? '100%' : `calc(100% - ${drawerCollapsed ? collapsedDrawerWidth : drawerWidth}px)`,
-            transition: theme.transitions.create(['width', 'margin'], {
-              easing: theme.transitions.easing.sharp,
-              duration: theme.transitions.duration.leavingScreen,
-            }),
-          }}
-        >
-          <Toolbar />
-          
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={location.pathname}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Paper
-                elevation={0}
-                sx={{
-                  // borderRadius: 4,
-                  // p: 3,
-                  minHeight: 'calc(100vh - 96px)',
-                  background: theme.palette.background.paper,
-                }}
-              >
-                <Outlet />
-              </Paper>
-            </motion.div>
-          </AnimatePresence>
-        </Box>
       </Box>
     </ThemeProvider>
   );

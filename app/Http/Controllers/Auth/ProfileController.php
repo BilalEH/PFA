@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -92,6 +93,36 @@ class ProfileController extends Controller
         return response()->json([
             'applications' => $applications,
             'message' => 'User applications retrieved successfully.'
+        ], 200);
+    }
+
+    public function getUserClubs()
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+        $clubs = $user->clubUsers()->with('club')->get();
+
+        return response()->json([
+            'user' => $user,
+            'clubs' => $clubs
+        ], 200);
+    }
+
+    public function getMyClubsEvents()
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+
+        // Eager load the club relationship
+        $clubs = $user->clubUsers()->with('club.events')->get();
+
+        return response()->json([
+            'clubs' => $clubs,
+            'message' => 'User clubs and events retrieved successfully.'
         ], 200);
     }
 }
