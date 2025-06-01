@@ -17,7 +17,13 @@ import { MyClubsList } from '../components/student/myClubsList';
 import ClubEventsPage from '../components/student/MyClubsEnvents';
 import DashboardStudent from '../components/student/MainDashbord';
 
-
+import ClubInfo from '../ClubAdmin/pages/ClubInfo';
+import Interviews from '../ClubAdmin/pages/Interviews';
+import { DashboardCustomize } from '@mui/icons-material';
+import { Club, Layout } from 'lucide-react';
+import Events from '../ClubAdmin/pages/Events';
+import Dashboard from '../ClubAdmin/pages/Dashboard';
+import Members from '../ClubAdmin/pages/Members';
 
 const ClubsPage = () => <h1>Liste des clubs disponibles</h1>;
 const EventsPage = () => <h1>Événements à venir</h1>;
@@ -62,9 +68,11 @@ export const Router = createBrowserRouter([
     path: '/club-admin',
     element: <ClubAdminLayout />,
     children: [
-      { path: 'dashboard', element: <ClubAdminDashboard /> },
-      { path: 'members', element: <h1>Gestion des membres</h1> },
-      { path: 'interviews', element: <h1>Entretiens</h1> },
+      { path: 'dashboard', element: <Dashboard /> },
+      { path: 'members', element: <Members /> },
+      { path: 'interviews', element: <Interviews /> },
+      { path: 'events', element: <Events /> },
+      { path: 'club-info', element: <ClubInfo /> },
     ],
   },
   {

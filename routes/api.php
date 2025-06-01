@@ -11,12 +11,9 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\test;
 use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\EventController;
-
-// Route protégée par Sanctum pour récupérer l'utilisateur connecté
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
 });
-
 Route::apiResource('users', UserController::class);
 Route::get('feedbacks', [FeedbackController::class,"index"]);
 Route::get('/public-events', [EventController::class,'getpublicEvents']);
