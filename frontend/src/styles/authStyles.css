@@ -25,6 +25,11 @@ body {
   width: 100%;
 }
 
+.css-4o0y32-MuiGrid-root{
+  min-width: 300px;
+  max-width: 400px;
+}
+
 .auth-container {
   display: flex;
   min-height: 100vh;

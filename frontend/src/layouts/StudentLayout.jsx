@@ -290,7 +290,7 @@ const StudentLayout = () => {
         { text: 'Tableau de Bord', icon: <DashboardIcon />, link: '/student/dashboard' },
         { text: 'Tableau de Bord du Club', icon: <SchoolIcon />, link: '/student/club-dashboard' },
         { text: 'Événements', icon: <EventIcon />, link: '/student/events' },
-        { text: 'Membres', icon: <GroupIcon />, link: '/student/members' },
+        { text: "Candidatures d'événements", icon: <GroupIcon />, link: '/student/event-applications' },
       ];
 
   const drawerContent = (

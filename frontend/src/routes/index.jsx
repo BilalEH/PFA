@@ -24,6 +24,7 @@ import { Club, Layout } from 'lucide-react';
 import Events from '../ClubAdmin/pages/Events';
 import Dashboard from '../ClubAdmin/pages/Dashboard';
 import Members from '../ClubAdmin/pages/Members';
+import EventsApplications from '../components/student/EventsApplications';
 
 const ClubsPage = () => <h1>Liste des clubs disponibles</h1>;
 const EventsPage = () => <h1>Événements à venir</h1>;
@@ -62,6 +63,7 @@ export const Router = createBrowserRouter([
       { path: 'apply/:InterviewId', element: <ClubApplication /> },
       { path: 'notifications', element: <Notifications /> },
       { path: 'club-dashboard', element: <MyClubsList /> },
+      { path: 'event-applications', element: <EventsApplications /> },
     ],
   },
   {

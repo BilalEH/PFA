@@ -190,8 +190,10 @@ const ClubsToInterview = () => {
     setSelectedClub(club);
     
     try {
+      
       const response = await axiosInstance.get(`/api/club/${club.id}`);
       const processed = processTimeSlots(response.data.interviews);
+      console.log(response.data.interviews);
       setTimeSlots(processed);
       setDialogOpen(true);
     } catch (err) {
@@ -318,7 +320,7 @@ const ClubsToInterview = () => {
   if (loading) {
     return <LoadingScreen />;
   }
-
+  
   return (
     <Container maxWidth="xl" sx={{ py: { xs: 2, md: 4 } }}>
       <motion.div
@@ -377,7 +379,7 @@ const ClubsToInterview = () => {
             </Typography>
             
             <Grid container spacing={{ xs: 2, md: 3 }}>
-              {clubsList.map((club, index) => (
+              {clubsList.data.map((club, index) => (
                 <Grid item xs={12} sm={6} lg={4} key={club.id}>
                   <motion.div
                     variants={cardVariants}

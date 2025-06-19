@@ -126,4 +126,23 @@ class UserController extends Controller
             return response()->json($user->clubUsers());
         }return response()->json(['error'=>'enly for students']);
     }
+
+    public function GetDashboardData()
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+        $user = Auth::user();
+        $data = [
+            'user' => $user,
+            'clubs_count' => $user->clubUsers->count(),
+            'events_count' => $user->eventUsers->count(),
+            'feedback_count' => $user->feedback->count(),
+            'interviews_count' => $user->interviews->count(),
+            'notifications_count' => $user->notifications->count(),
+            
+        ];
+
+        return response()->json($data, 200);
+    }
 }

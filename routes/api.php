@@ -20,6 +20,8 @@ Route::get('/public-events', [EventController::class,'getpublicEvents']);
 
 
 Route::middleware('auth:sanctum')->group(function () {
+    // ----- dashboard
+    Route::get('/dashboard', [UserController::class, 'GetDashboardData']);
     // ----- interviews
     Route::apiResource('interviews', InterviewController::class);
     Route::get('/getMyClubsEvents', [ProfileController::class, 'getMyClubsEvents']);
@@ -28,11 +30,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('club/{club}', [ClubController::class,'getinterViewSlotsList']);
     Route::get('/userIsInClub', [UserController::class, 'ClubTest']);
     Route::get('/userClubs', [ProfileController::class, 'getUserClubs']);
+    Route::get('/mombers/clubs', [ClubController::class, 'getClubMembers']);
+    Route::get('/interviews-club', [ClubController::class, 'getInterviewsByClub']);
+    Route::get('/envents-club', [ClubController::class, 'ClubEvents']);
+    Route::get('/club-dashboard', [ClubController::class, 'ClubDashboard']);
+    Route::get('/club-info', [ClubController::class, 'ClubInfo']);
+
     // ----- Applications
     Route::apiResource('interview-slots', InterviewSlotController::class);
     Route::get('interview/application/{interview}', [ClubController::class, 'getApplication']);
     Route::post('interview/application/{interview}', [ClubController::class, 'saveApplication']);
-    //profiles
+    // ----- profiles
     Route::get('/profile', [ProfileController::class, 'getProfile']);
     Route::get('/userApplications', [ProfileController::class, 'getUserAplcations']);
     Route::patch('/profile', [ProfileController::class, 'updateProfile']);
@@ -40,6 +48,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user/notifications', [NotificationController::class, 'index']);
     Route::get('/user/notifications/not-read-number', [NotificationController::class, 'getNotificationsOfUserNotReadNumber']);
     Route::patch('/user/notifications/{id}', [NotificationController::class, 'markAsRead']);
+    // ----- Events
+    Route::patch('/events/{event}/join', [EventController::class, 'JoinEvent']);
+    Route::get('/userevents', [EventController::class, 'fetchEventsByUser']);
+    // Route::get('/events/{event}/feedbacks', [EventController::class, 'getEventFeedbacks']);
+    Route::post('/events/{event}/feedbacks', [EventController::class, 'addFeadback']);
 
 });
 

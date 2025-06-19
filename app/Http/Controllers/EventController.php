@@ -148,4 +148,85 @@ class EventController extends Controller
 
         return response()->json($events);
     }
+
+    public function JoinEvent(Event $event)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['message' => 'Vous devez être connecté pour vous inscrire à un événement.'], 401);
+        }
+
+
+        // Check if the user is already registered for the event
+        if ($event->eventUsers()->where('user_id', $user->id)->exists()) {
+            return response()->json(['message' => 'Vous êtes déjà inscrit à cet événement.'], 400);
+        }
+
+        // Check if the event has reached its maximum participants
+        if ($event->max_participants && $event->eventUsers()->count() >= $event->max_participants) {
+            return response()->json(['message' => 'L\'événement a atteint le nombre maximum de participants.'], 400);
+        }
+
+        // Register the user for the event
+        $event->eventUsers()->create([
+            'user_id' => $user->id,
+            'status' => \App\Enums\EventUserStatus::REGISTERED,
+            'registered_at' => now(),
+        ]);
+
+        return response()->json(['message' => 'Inscription réussie à l\'événement.']);
+
+    }
+
+    public function fetchEventsByUser()
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['message' => 'Vous devez être connecté pour voir vos événements.'], 401);
+        }
+
+        $events = $user->eventUsers()->with(['event.club', 'event.eventUsers.user'])->get()->map(function ($eu) {
+            return $eu->event;
+        });
+
+        // Format the events
+        $events = $events->map(function ($event) {
+            $event->users_count = $event->eventUsers->count();
+            $event->users = $event->eventUsers->map(function ($eu) {
+                return $eu->user;
+            });
+            unset($event->eventUsers);
+            return $event;
+        });
+
+        return response()->json($events);
+    }
+
+    public function addFeadback(Request $request, Event $event)
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['message' => 'Vous devez être connecté pour donner votre avis.'], 401);
+        }
+
+        $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'nullable|string|max:500',
+        ]);
+        // Check if the user has already given feedback for this event
+        if ($event->feedback()->where('user_id', $user->id)->exists()) {
+            return response()->json(['message' => 'Vous avez déjà donné votre avis pour cet événement.'], 400);
+        }
+        // Create the feedback
+        $feedback = $event->feedback()->create([
+            'user_id' => $user->id,
+            'rating' => $request->input('rating'),
+            'comment' => $request->input('comment'),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        return response()->json(['message' => 'Avis ajouté avec succès.', 'feedback' => $feedback]);
+    }
+
+
 }

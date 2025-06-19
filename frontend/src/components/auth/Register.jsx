@@ -5,6 +5,7 @@ import PasswordInput from '../ui/PasswordInput';
 import Button from '../ui/Button';
 import { axiosInstance } from '../../apiConfig/axios';
 import '../../styles/authStyles.css';
+import toast from 'react-hot-toast';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -56,17 +57,11 @@ const Register = () => {
     }
 
     try {
-      console.log('Fetching CSRF token...');
-      await axiosInstance.get('/sanctum/csrf-cookie');
-      console.log('CSRF token fetched!');
-      setMessage('CSRF token fetched, attempting registration...');
+     await axiosInstance.get('/sanctum/csrf-cookie');
 
       setTimeout(async () => {
         try {
-          console.log('Attempting registration...');
           const token = getCookie('XSRF-TOKEN');
-          console.log('Found CSRF token in cookie:', token ? 'Yes' : 'No');
-
           const headers = {};
           if (token) {
             headers['X-XSRF-TOKEN'] = decodeURIComponent(token);
@@ -78,21 +73,13 @@ const Register = () => {
               first_name: formData.firstName,
               last_name: formData.lastName,
               email: formData.email,
-              student_id: formData.studentId,
-              year_of_study: formData.yearOfStudy,
-              branch: formData.branch,
               password: formData.password,
               password_confirmation: formData.confirmPassword,
-              user_type: 'student',
             },
             { headers }
           );
-
-          console.log('Registration successful:', response.data);
-          setMessage('Registration successful! Redirecting to dashboard...');
-          setTimeout(() => {
-            navigate('/student/dashboard');
-          }, 2000);
+          toast.success('Registration successful');
+          navigate('/student/dashboard');
         } catch (err) {
           console.error('Registration error:', err);
           setError(err.response?.data?.message || 'Registration failed');

@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use DateTime;
 use App\Models\Notification;
+use App\Models\Application;
+use App\Models\InterviewSlot;
+use App\Models\Interview;
 class ClubController extends Controller
 {
 
@@ -117,15 +120,15 @@ class ClubController extends Controller
 
         // If there are no interview slots, return an appropriate response
         if ($interviews->isEmpty()) {
-            return response()->json(['message' => 'No interview slots found.'], 404);
+            return response()->json(['message' => 'No interview slots found.'], 404);   
         }
 
         // Get the last interview slot
         $lastInterview = $interviews->last();
 
-        $startDate = Carbon::parse($lastInterview->start_time);
-        $endDate = Carbon::parse($lastInterview->end_time);
-        $now = Carbon::now();
+        $startDate = \Carbon\Carbon::parse($lastInterview->start_time);
+        $endDate = \Carbon\Carbon::parse($lastInterview->end_time);
+        $now = \Carbon\Carbon::now();
 
         // Check if now is within the start and end time
         $isOngoing = $now->between($startDate, $endDate);
@@ -161,7 +164,6 @@ class ClubController extends Controller
 
         $userId = Auth::user()->id;
 
-        // Check if the user already applied to this interview slot
         $existing = Application::where('user_id', $userId)
             ->where('club_id', $interview->club_id)
             ->first();
@@ -178,6 +180,8 @@ class ClubController extends Controller
         $application->club_id = $interview->club_id;
         $application->save();
 
+        $interview->update(['booked_interviews' => $interview->booked_interviews + 1]); 
+
         //add notification
         $notification = [
             'title' => 'Nouvelle candidature',
@@ -192,5 +196,163 @@ class ClubController extends Controller
             'message' => 'Application submitted successfully.',
             'application' => $application
         ], 201);
+    }
+
+
+    function getClubMembers()
+    {
+        $user = Auth::user();
+
+        $userClubs = $user->clubUsers()->where('role', 'admin')->get();
+        $members = [];
+
+        foreach ($userClubs as $clubUser) {
+            $club = $clubUser->club()->first();
+            if ($club) {
+                $clubMembers = $club->clubUsers()->with('user')->get();
+                foreach ($clubMembers as $clubMember) {
+                    $memberData = $clubMember->toArray();
+                    $memberData['is_auth_user'] = $clubMember->user_id === $user->id;
+                    $members[] = $memberData;
+                }
+            }
+        }
+
+        return response()->json([
+            'data' => $members,
+        ], 200);
+    }
+
+
+    function MemberRoleChange(Request $request, $memberId)
+    {
+        $user = Auth::user();
+        if ($user->user_type !== 'club_admin' && $user->user_type !== 'system_admin') {
+            return response()->json([
+                'message' => 'Forbidden',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'role' => 'required|string|in:member,admin,president,vice_president,secretary,treasurer',
+        ]);
+
+        $clubUser = \App\Models\ClubUser::all()->where('user_id', $memberId)->first();
+        if (!$clubUser) {
+            return response()->json([
+                'message' => 'Member not found.',
+            ], 404);
+        }
+
+        $clubUser->role = $validated['role'];
+        $clubUser->save();
+
+        return response()->json([
+            'message' => 'Member role updated successfully.',
+            'data' => $clubUser,
+        ], 200);
+    }
+
+    public function getInterviewsByClub()
+    {
+        $user = Auth::user();
+
+        $userClubs = $user->clubUsers()->where('role', 'admin')->get();
+        $interviews = [];
+
+        foreach ($userClubs as $clubUser) {
+            $club = $clubUser->club;
+            if ($club) {
+                $clubInterviews = $club->interviewSlots;
+                foreach ($clubInterviews as $interview) {
+                    $interviewData = $interview->toArray();
+                    $interviews[] = $interviewData;
+                }
+            }
+        }
+
+        return response()->json([
+            'data' => $interviews,
+        ], 200);
+    }
+    public function ClubEvents()
+    {
+        $user = Auth::user();
+        $userClubs = $user->clubUsers()->where('role', 'admin')->get();
+        $events = [];
+        foreach ($userClubs as $clubUser) {
+            $club = $clubUser->club;
+            if ($club) {
+                $clubEvents = $club->events;
+                foreach ($clubEvents as $event) {
+                    $eventData = $event->toArray();
+                    $eventData['is_auth_user'] = $event->eventUsers()->where('user_id', $user->id)->exists();
+                    $eventData['participants_count'] = $event->eventUsers()->count();
+                    $events[] = $eventData;
+                }
+            }
+        }
+
+        return response()->json([
+            'data' => $events,
+        ], 200);
+    }
+
+    public function ClubDashboard()
+    {
+        $user = Auth::user();
+        $userClubs = $user->clubUsers()->where('role', 'admin')->get();
+        $dashboardData = [];
+
+        foreach ($userClubs as $clubUser) {
+            $club = $clubUser->club;
+            if ($club) {
+                $upcomingEvents = $club->events()->where('start_date', '>', now())->count();
+                $upcomingInterviews = $club->interviewSlots()->where('end_time', '>', now())->count();
+                $dashboardData[] = [
+                    'club_id' => $club->id,
+                    'name' => $club->name,
+                    'description' => $club->description,
+                    'logo' => $club->logo,
+                    'cover_image' => $club->cover_image,
+                    'is_active' => $club->is_active,
+                    'foundation_date' => $club->foundation_date,
+                    'members_count' => $club->clubUsers()->count(),
+                    'interviews_count' => $club->interviewSlots()->count(),
+                    'events_count' => $club->events()->count(),
+                    'upcoming_events_count' => $upcomingEvents,
+                    'upcoming_interviews_count' => $upcomingInterviews,
+                ];
+            }
+        }
+
+        return response()->json([
+            'data' => $dashboardData,
+        ], 200);
+    }
+
+    public function ClubInfo(){
+        $user = Auth::user();
+        $userClubs = $user->clubUsers()->where('role', 'admin')->get();
+        $clubsInfo = [];
+
+        foreach ($userClubs as $clubUser) {
+            $club = $clubUser->club;
+            if ($club) {
+                $clubsInfo[] = [
+                    'id' => $club->id,
+                    'name' => $club->name,
+                    'description' => $club->description,
+                    'logo' => $club->logo,
+                    'cover_image' => $club->cover_image,
+                    'is_active' => $club->is_active,
+                    'foundation_date' => $club->foundation_date,
+                ];
+            }
+        }
+
+        return response()->json([
+            'data' => $clubsInfo,
+        ], 200);
     }
 }

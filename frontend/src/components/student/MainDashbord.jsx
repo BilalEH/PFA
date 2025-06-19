@@ -1,335 +1,410 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Avatar, Box, Card, CardContent, Chip, Grid, List, ListItem,
-    ListItemAvatar, ListItemText, Typography, IconButton, Paper, Skeleton
+  Avatar, Box, Card, CardContent, Chip, List, ListItem,
+  ListItemAvatar, ListItemText, Typography, IconButton, Skeleton,
+  Stack, Button, useMediaQuery,
+  Grid
 } from '@mui/material';
+import { Masonry } from '@mui/lab';
 import { motion } from 'framer-motion';
-
-// --- Import a wide range of icons ---
 import {
-    Share, Facebook, Twitter, FilterList, MoreHoriz, Code, Campaign,
-    VolunteerActivism, StarBorder, EmojiEvents, WorkspacePremium
+  Share, Groups, Event, Notifications, Email,
+  Phone, Link as LinkIcon, ArrowForward, School, FilterList
 } from '@mui/icons-material';
+import { axiosInstance } from '../../apiConfig/axios';
+import { Link } from 'react-router-dom';
 
-// --- Helper to map string names from your data to actual Icon components ---
-const iconMap = {
-    Code: <Code />,
-    Campaign: <Campaign />,
-    VolunteerActivism: <VolunteerActivism />,
-    StarBorder: <StarBorder color="primary" fontSize="large"/>,
-    EmojiEvents: <EmojiEvents color="primary" fontSize="large"/>,
-    WorkspacePremium: <WorkspacePremium color="primary" fontSize="large"/>,
-    Default: <div />,
-};
-
-// --- Animation Variants ---
+// Animation Variants
 const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.07 } },
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      when: "beforeChildren"
+    }
+  },
 };
 
 const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1, transition: { type: 'spring', stiffness: 100 } },
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: 'spring',
+      stiffness: 120,
+      damping: 12
+    }
+  },
 };
 
-
-// ===================================================================================
-//
-//  SKELETON LOADER COMPONENT
-//  This component renders a placeholder UI while the data is loading.
-//
-// ===================================================================================
+// Skeleton Loader Component
 const DashboardSkeleton = () => (
-    <Box sx={{ flexGrow: 1 }}>
-        <Grid container spacing={3}>
-            {/* --- Left Sidebar Skeleton --- */}
-            <Grid item xs={12} md={3}>
-                <Card sx={{ mb: 3 }}>
-                    <CardContent>
-                        <Skeleton variant="text" width="60%" sx={{ mb: 2 }} />
-                        <List>
-                            {[...Array(3)].map((_, index) => (
-                                <ListItem key={index} disablePadding>
-                                    <ListItemAvatar>
-                                        <Skeleton variant="circular" width={40} height={40} />
-                                    </ListItemAvatar>
-                                    <ListItemText
-                                        primary={<Skeleton variant="text" width="80%" />}
-                                        secondary={<Skeleton variant="text" width="50%" />}
-                                    />
-                                </ListItem>
-                            ))}
-                        </List>
-                    </CardContent>
-                </Card>
-                <Card sx={{ mb: 3 }}>
-                    <CardContent>
-                        <Skeleton variant="text" width="40%" sx={{ mb: 2 }} />
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                            <Skeleton variant="rounded" width={60} height={32} />
-                            <Skeleton variant="rounded" width={70} height={32} />
-                            <Skeleton variant="rounded" width={50} height={32} />
-                        </Box>
-                    </CardContent>
-                </Card>
-            </Grid>
-
-            {/* --- Main Content Skeleton --- */}
-            <Grid item xs={12} md={6}>
-                <Card sx={{ mb: 3 }}>
-                     <Skeleton variant="rectangular" height={150} />
-                     <CardContent>
-                         <Skeleton variant="text" sx={{ fontSize: '2rem' }} width="40%"/>
-                         <Skeleton variant="text" width="20%"/>
-                     </CardContent>
-                </Card>
-                <Card>
-                    <CardContent>
-                        <Skeleton variant="text" width="50%" sx={{ mb: 2 }}/>
-                         {[...Array(3)].map((_, index) => (
-                                <ListItem key={index} divider>
-                                    <ListItemAvatar>
-                                        <Skeleton variant="circular" width={40} height={40} />
-                                    </ListItemAvatar>
-                                    <ListItemText
-                                        primary={<Skeleton variant="text" width="70%" />}
-                                        secondary={<Skeleton variant="text" width="30%" />}
-                                    />
-                                    <Skeleton variant="rounded" width={90} height={24} />
-                                </ListItem>
-                            ))}
-                    </CardContent>
-                </Card>
-            </Grid>
-
-            {/* --- Right Sidebar Skeleton --- */}
-            <Grid item xs={12} md={3}>
-                <Card sx={{ mb: 3 }}>
-                    <CardContent>
-                        <Skeleton variant="text" width="50%" sx={{ mb: 2 }}/>
-                        {[...Array(2)].map((_, index) => (
-                             <ListItem key={index}>
-                                <ListItemAvatar>
-                                    <Skeleton variant="circular" width={40} height={40} />
-                                </ListItemAvatar>
-                                <ListItemText
-                                    primary={<Skeleton variant="text" width="80%" />}
-                                    secondary={<Skeleton variant="text" width="50%" />}
-                                />
-                            </ListItem>
-                        ))}
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent>
-                         <Skeleton variant="text" width="60%" sx={{ mb: 2 }}/>
-                         <Box sx={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', pt: 2 }}>
-                             <Skeleton variant="circular" width={48} height={48} />
-                             <Skeleton variant="circular" width={48} height={48} />
-                             <Skeleton variant="circular" width={48} height={48} />
-                         </Box>
-                    </CardContent>
-                </Card>
-            </Grid>
-        </Grid>
-    </Box>
+  <Box sx={{ p: 2, height: 'calc(100vh - 64px)' }}>
+    <Masonry columns={{ xs: 1, sm: 2, md: 3 }} spacing={2}>
+      {[1, 2, 3, 4, 5, 6].map((item) => (
+        <Card key={item} sx={{ borderRadius: 3 }}>
+          <CardContent>
+            <Skeleton variant="text" width="60%" />
+            <Skeleton variant="rectangular" height={item % 2 === 0 ? 200 : 150} sx={{ mt: 1 }} />
+          </CardContent>
+        </Card>
+      ))}
+    </Masonry>
+  </Box>
 );
 
-
-// ===================================================================================
-//
-//  MAIN DASHBOARD STUDENT COMPONENT
-//  This component handles data fetching and displays the final UI.
-//
-// ===================================================================================
 const DashboardStudent = () => {
-    const [dashboardData, setDashboardData] = useState(null);
-    const [loading, setLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const isMobile = useMediaQuery('(max-width:900px)');
 
-    useEffect(() => {
-        // --- Simulate a network request ---
-        const timer = setTimeout(() => {
-            // This is the mock data structure.
-            // In a real app, you would get this from your API call.
-            const fetchedData = {
-                user: { name: 'Aymen Bida', role: 'Club Member', avatarUrl: 'https://i.pravatar.cc/150?u=aymenbida', coverImageUrl: 'https://picsum.photos/id/1018/800/200' },
-                messages: [
-                    { id: 1, author: 'Jane Smith', text: 'Meeting reminder for tomorrow!', time: '1h ago', avatarUrl: 'https://i.pravatar.cc/150?u=janesmith' },
-                    { id: 2, author: 'Club President', text: 'New event budget approved.', time: '3h ago', avatarUrl: 'https://i.pravatar.cc/150?u=president' },
-                ],
-                clubTags: ['Tech', 'Debate', 'Community', 'Events', 'Design'],
-                interests: [
-                    { id: 1, name: 'Programming', icon: 'Code' },
-                    { id: 2, name: 'Public Speaking', icon: 'Campaign' },
-                    { id: 3, name: 'Volunteering', icon: 'VolunteerActivism' },
-                ],
-                upcomingEvents: [
-                    { id: 1, title: 'Annual Tech Symposium', date: 'In 3 Days', status: 'Confirmed' },
-                    { id: 2, title: 'Community Bake Sale', date: 'In 1 Week', status: 'Planning' },
-                    { id: 3, title: 'End of Year Club Dinner', date: 'In 2 Weeks', status: 'Confirmed' },
-                ],
-                clubAdmins: [
-                    { id: 1, name: 'Jane Smith', role: 'President', avatarUrl: 'https://i.pravatar.cc/150?u=janesmith' },
-                    { id: 2, name: 'Peter Jones', role: 'Treasurer', avatarUrl: 'https://i.pravatar.cc/150?u=peterjones' },
-                ],
-                activityFeed: [
-                    { id: 1, text: 'You joined the "Annual Tech Symposium" event.' },
-                    { id: 2, text: 'A new announcement was posted by the Club President.' },
-                ],
-                badges: [
-                    { id: 1, name: 'Initiate', icon: 'StarBorder' },
-                    { id: 2, name: 'Organizer', icon: 'EmojiEvents' },
-                    { id: 3, name: 'Contributor', icon: 'WorkspacePremium' },
-                ]
-            };
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const response = await axiosInstance.get('/api/dashboard');
+        setDashboardData(response.data);
+      } catch (err) {
+        console.error('Erreur lors du chargement des données:', err);
+        setError('Échec du chargement du tableau de bord');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-            setDashboardData(fetchedData);
-            setLoading(false);
-        }, 2000); // Simulate a 2-second loading time
+    fetchDashboardData();
+  }, []);
 
-        // Cleanup function to clear the timer
-        return () => clearTimeout(timer);
-    }, []); // Empty dependency array means this runs once on mount
-
-
-    // --- Render Skeleton while loading ---
-    if (loading) {
-        return <DashboardSkeleton />;
-    }
-
-    // --- Render the actual dashboard once data is loaded ---
-    const {
-        user, messages, clubTags, interests,
-        upcomingEvents, clubAdmins, activityFeed, badges
-    } = dashboardData;
-
+  if (loading) return <DashboardSkeleton />;
+  if (error) {
     return (
-        <Box sx={{ flexGrow: 1 }}>
-            <motion.div variants={containerVariants} initial="hidden" animate="visible">
-                <Grid container spacing={3}>
-                    {/* --- Left Sidebar --- */}
-                    <Grid item xs={12} md={3}>
-                        <motion.div variants={itemVariants}>
-                            <Card sx={{ mb: 3 }}>
-                                <CardContent>
-                                    <Typography variant="h6" gutterBottom>Recent Messages</Typography>
-                                    <List>
-                                        {messages.map((msg) => (
-                                            <ListItem key={msg.id} disablePadding>
-                                                <ListItemAvatar><Avatar alt={msg.author} src={msg.avatarUrl} /></ListItemAvatar>
-                                                <ListItemText primary={msg.author} secondary={msg.text} />
-                                            </ListItem>
-                                        ))}
-                                    </List>
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-                        <motion.div variants={itemVariants}>
-                            <Card sx={{ mb: 3 }}>
-                                <CardContent>
-                                    <Typography variant="h6" gutterBottom>Club Tags</Typography>
-                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                        {clubTags.map((tag) => <Chip key={tag} label={tag} />)}
-                                    </Box>
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-                         <motion.div variants={itemVariants}>
-                            <Card>
-                                <CardContent>
-                                    <Typography variant="h6" gutterBottom>Your Interests</Typography>
-                                    <List>
-                                        {interests.map((interest) => (
-                                            <ListItem key={interest.id} disablePadding>
-                                                <ListItemAvatar>{iconMap[interest.icon] || iconMap.Default}</ListItemAvatar>
-                                                <ListItemText primary={interest.name} />
-                                            </ListItem>
-                                        ))}
-                                    </List>
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-                    </Grid>
-
-                    {/* --- Main Content --- */}
-                    <Grid item xs={12} md={6}>
-                        <motion.div variants={itemVariants}>
-                             <Card sx={{ position: 'relative', height: '250px', mb: 3 }}>
-                                <Box component="img" sx={{ height: '150px', width: '100%', objectFit: 'cover' }} src={user.coverImageUrl} alt="Cover Image"/>
-                                <Avatar alt={user.name} src={user.avatarUrl} sx={{ width: 80, height: 80, position: 'absolute', top: '110px', left: '20px', border: '4px solid white' }}/>
-                                <Box sx={{ p: 2, pt: 6 }}>
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <Box><Typography variant="h5">{user.name}</Typography><Typography variant="body2" color="text.secondary">{user.role}</Typography></Box>
-                                        <Box><IconButton><Share /></IconButton><IconButton><Facebook /></IconButton><IconButton><Twitter /></IconButton></Box>
-                                    </Box>
-                                </Box>
-                            </Card>
-                        </motion.div>
-                        <motion.div variants={itemVariants}>
-                            <Card>
-                                <CardContent>
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}><Typography variant="h6">Upcoming Events</Typography><IconButton><FilterList /></IconButton></Box>
-                                    <List>
-                                        {upcomingEvents.map((event) => (
-                                            <ListItem key={event.id} divider>
-                                                <ListItemAvatar><Avatar>{event.title.charAt(0)}</Avatar></ListItemAvatar>
-                                                <ListItemText primary={event.title} secondary={`Due ${event.date}`} />
-                                                <Chip label={event.status} color={event.status === 'Confirmed' ? 'success' : 'warning'} size="small" />
-                                            </ListItem>
-                                        ))}
-                                    </List>
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-                    </Grid>
-
-                    {/* --- Right Sidebar --- */}
-                    <Grid item xs={12} md={3}>
-                        <motion.div variants={itemVariants}>
-                             <Card sx={{ mb: 3 }}>
-                                <CardContent>
-                                    <Typography variant="h6" gutterBottom>Club Admins</Typography>
-                                    <List>
-                                        {clubAdmins.map((admin) => (
-                                            <ListItem key={admin.id} secondaryAction={<IconButton edge="end"><MoreHoriz /></IconButton>}>
-                                                <ListItemAvatar><Avatar alt={admin.name} src={admin.avatarUrl} /></ListItemAvatar>
-                                                <ListItemText primary={admin.name} secondary={admin.role} />
-                                            </ListItem>
-                                        ))}
-                                    </List>
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-                         <motion.div variants={itemVariants}>
-                            <Card sx={{ mb: 3 }}>
-                                <CardContent>
-                                    <Typography variant="h6" gutterBottom>Badges Earned</Typography>
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', pt: 2 }}>
-                                         {badges.map(badge => (
-                                            <Box key={badge.id} sx={{ textAlign: 'center' }}>{iconMap[badge.icon] || iconMap.Default}<Typography variant="caption" display="block">{badge.name}</Typography></Box>
-                                        ))}
-                                    </Box>
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-                         <motion.div variants={itemVariants}>
-                            <Card>
-                                <CardContent>
-                                    <Typography variant="h6" gutterBottom>Recent Activity</Typography>
-                                    {activityFeed.map((activity) => (
-                                       <Paper key={activity.id} elevation={0} sx={{ p: 1, mb: 1, display: 'flex', alignItems: 'center', backgroundColor: 'transparent' }}>
-                                            <Typography variant="body2">{activity.text}</Typography>
-                                       </Paper>
-                                    ))}
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-                    </Grid>
-                </Grid>
-            </motion.div>
-        </Box>
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: 'calc(100vh - 64px)'
+      }}>
+        <Typography variant="h6" color="error">{error}</Typography>
+      </Box>
     );
+  }
+
+  // Destructure with safe defaults
+  const {
+    user = {},
+    clubs_count = 0,
+    events_count = 0,
+    feedback_count = 0,
+    interviews_count = 0,
+    notifications_count = 0
+  } = dashboardData || {};
+
+  // User data with defaults
+  const {
+    first_name = '',
+    last_name = '',
+    profile_image = '',
+    branch = '',
+    year_of_study = '',
+    bio = '',
+    phone_number = '',
+    email = '',
+    club_users = [],
+    notifications = []
+  } = user || {};
+
+  // Format user name
+  const fullName = `${first_name} ${last_name}`;
+
+  const cards = [
+    // Profile Card
+    <motion.div key="profile" variants={itemVariants}>
+      <Card sx={{ borderRadius: 3, boxShadow: 3  }} >
+        <Box sx={{ 
+          height: 100, 
+          background: 'linear-gradient(135deg, #2e8b57 0%, #61bc84 100%)' 
+        }} />
+        <CardContent sx={{ position: 'relative' }}>
+          <Avatar 
+            src={profile_image} 
+            alt={fullName} 
+            sx={{ 
+              width: 80, 
+              height: 80, 
+              mb: 2, 
+              border: '4px solid white',
+              boxShadow: 3,
+              position: 'absolute',
+              top: -40,
+              left: '50%',
+              transform: 'translateX(-50%)'
+            }} 
+          />
+          
+          <Box sx={{ mt: 6, textAlign: 'center' }}>
+            <Typography variant="h6" fontWeight="bold">{fullName}</Typography>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+              {branch} • Année {year_of_study}
+            </Typography>
+          </Box>
+          
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, my: 2 }}>
+            <Chip 
+              icon={<Groups />} 
+              label={`${clubs_count} Clubs`} 
+              variant="outlined" 
+            />
+            <Chip 
+              icon={<Event />} 
+              label={`${events_count} Événements`} 
+              variant="outlined" 
+            />
+          </Box>
+          
+          <Typography variant="body2" sx={{ mb: 2, textAlign: 'center' }}>
+            {bio || "Aucune biographie disponible"}
+          </Typography>
+          
+          <Stack direction="row" spacing={1} sx={{ justifyContent: 'center' }}>
+            <IconButton color="primary" href={`mailto:${email}`}>
+              <Email />
+            </IconButton>
+            <IconButton color="primary" href={`tel:${phone_number}`}>
+              <Phone />
+            </IconButton>
+            <IconButton color="primary">
+              <Share />
+            </IconButton>
+          </Stack>
+        </CardContent>
+      </Card>
+    </motion.div>,
+
+    // Notifications Card
+    <motion.div key="notifications" variants={itemVariants}>
+      <Card sx={{ borderRadius: 3, boxShadow: 3 }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+            <Typography variant="h6" fontWeight="bold">
+              <Notifications fontSize="small" sx={{ mr: 1 }} /> Notifications
+              <Chip label={notifications_count} color="error" size="small" sx={{ ml: 1 }} />
+            </Typography>
+            <IconButton size="small"><FilterList /></IconButton>
+          </Box>
+          
+          <List sx={{ maxHeight: 300, overflow: 'auto' }}>
+            {notifications.length ? notifications.slice(0, 4).map((notif) => (
+              <ListItem 
+                key={notif.id} 
+                divider 
+                sx={{ 
+                  px: 0,
+                  '&:hover': { backgroundColor: 'action.hover' }
+                }}
+              >
+                <ListItemAvatar>
+                  <Avatar sx={{ bgcolor: 'primary.main' }}>
+                    <Notifications />
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText
+                  primary={notif.title}
+                  secondary={notif.message}
+                  primaryTypographyProps={{ 
+                    fontWeight: notif.is_read ? 'normal' : 'bold',
+                    fontSize: '0.9rem'
+                  }}
+                />
+                {!notif.is_read && <Chip label="Nouveau" color="error" size="small" />}
+              </ListItem>
+            )) : (
+              <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+                Aucune notification
+              </Typography>
+            )}
+          </List>
+          
+          <Button 
+            variant="text" 
+            fullWidth 
+            endIcon={<ArrowForward />}
+            sx={{ mt: 1 }}
+            href="/student/notifications"
+          >
+            Voir toutes
+          </Button>
+        </CardContent>
+      </Card>
+    </motion.div>,
+
+    // Activity Stats Card
+    <motion.div key="activity" variants={itemVariants}>
+      <Card sx={{ borderRadius: 3, boxShadow: 3 }}>
+        <CardContent>
+          <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
+            <Event fontSize="small" sx={{ mr: 1 }} /> Mon Activité
+          </Typography>
+          <Grid container spacing={2}>
+            {[
+              { label: "Clubs", value: clubs_count, color: "primary", icon: <Groups /> },
+              { label: "Événements", value: events_count, color: "secondary", icon: <Event /> },
+              { label: "Entretiens", value: interviews_count, color: "info", icon: <School /> },
+              { label: "Retours", value: feedback_count, color: "success", icon: <Notifications /> }
+            ].map((item, i) => (
+              <Grid item xs={6} key={i}>
+                <Card sx={{ 
+                  p: 2, 
+                  textAlign: 'center', 
+                  borderRadius: 2, 
+                  bgcolor: `${item.color}.light`,
+                  color: `${item.color}.contrastText`
+                }}>
+                  <Box sx={{ mb: 1 }}>{item.icon}</Box>
+                  <Typography variant="h5" fontWeight="bold">{item.value}</Typography>
+                  <Typography variant="body2">{item.label}</Typography>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </CardContent>
+      </Card>
+    </motion.div>,
+
+    // Clubs Card
+    <motion.div key="clubs" variants={itemVariants}>
+      <Card sx={{ borderRadius: 3, boxShadow: 3 }}>
+        <CardContent>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+            <Typography variant="h6" fontWeight="bold">
+              <School fontSize="small" sx={{ mr: 1 }} /> Mes Clubs
+            </Typography>
+            <Link to="/student/club-dashboard" style={{ textDecoration: 'none' }}>
+              <Button variant="text" size="small" endIcon={<ArrowForward />}>
+                Tableau de bord
+              </Button>
+            </Link>
+          </Box>
+          
+          <List sx={{ maxHeight: 300, overflow: 'auto' }}>
+            {club_users.length ? club_users.map((club, index) => (
+              <ListItem 
+                key={index} 
+                sx={{ 
+                  px: 0,
+                  '&:hover': { backgroundColor: 'action.hover' }
+                }}
+              >
+                <ListItemAvatar>
+                  <Avatar sx={{ bgcolor: 'primary.main' }}>
+                    <School />
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText
+                  primary={`Club ${club.club_id}`}
+                  secondary={`Rôle: ${club.role.charAt(0).toUpperCase() + club.role.slice(1)}`}
+                />
+                <Chip 
+                  label={club.is_active ? "Actif" : "Inactif"} 
+                  color={club.is_active ? "success" : "error"} 
+                  size="small" 
+                />
+              </ListItem>
+            )) : (
+              <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+                Vous n'êtes membre d'aucun club
+              </Typography>
+            )}
+          </List>
+          
+          <Button 
+            variant="outlined" 
+            fullWidth 
+            endIcon={<ArrowForward />}
+            sx={{ mt: 1 }}
+            href="/student/clubs"
+          >
+            Explorer les clubs
+          </Button>
+        </CardContent>
+      </Card>
+    </motion.div>,
+
+    // Resources Card
+    <motion.div key="resources" variants={itemVariants}>
+      <Card sx={{ borderRadius: 3, boxShadow: 3 }}>
+        <CardContent>
+          <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
+            <LinkIcon fontSize="small" sx={{ mr: 1 }} /> Ressources
+          </Typography>
+          
+          <List sx={{ maxHeight: 300, overflow: 'auto' }}>
+            {[
+              { title: 'Guide des clubs', description: 'Guide des activités de club', href: '/resources/handbook' },
+              { title: 'Calendrier', description: 'Calendrier des événements', href: '/resources/calendar' },
+              { title: 'Annuaire', description: 'Connectez-vous avec d\'autres étudiants', href: '/resources/directory' },
+              { title: 'Formations', description: 'Ateliers et tutoriels', href: '/resources/training' },
+              { title: 'Financement', description: 'Guide pour obtenir des fonds', href: '/resources/funding' }
+            ].map((res, idx) => (
+              <ListItem 
+                key={idx} 
+                component="a" 
+                href={res.href}
+                sx={{ 
+                  px: 0,
+                  '&:hover': { backgroundColor: 'action.hover' }
+                }}
+              >
+                <ListItemAvatar>
+                  <Avatar sx={{ bgcolor: 'primary.light', color: 'primary.dark' }}>
+                    <LinkIcon />
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText
+                  primary={res.title}
+                  secondary={res.description}
+                />
+              </ListItem>
+            ))}
+          </List>
+          
+          <Button 
+            variant="outlined" 
+            fullWidth 
+            endIcon={<ArrowForward />}
+            sx={{ mt: 1 }}
+            href="/resources"
+          >
+            Explorer les ressources
+          </Button>
+        </CardContent>
+      </Card>
+    </motion.div>
+  ];
+
+  return (
+    <Box sx={{ 
+      height: 'calc(100vh - 64px)',
+      p: 2,
+      overflow: 'auto'
+    }}>
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <Masonry
+          columns={{ xs: 1, sm: 2, md: 2 }} 
+          spacing={3}
+          sx={{ width: 'auto' }}
+        >
+          {cards}
+        </Masonry>
+      </motion.div>
+    </Box>
+  );
 };
 
 export default DashboardStudent;
